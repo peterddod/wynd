@@ -41,7 +41,7 @@ Examples and tests are **not** part of a step. Examples live on the proto-step (
 ### 3.2 Step kinds (derivations of the base class)
 
 - `DeterministicStep` — pure Python function of inputs. No LLM, no network unless declared.
-- `AgenticStep` — an LLM loop, NOOA-shaped (see 3.8). Everything LLM-specific lives here and not in the base class: the class docstring is the instruction, `run` with a `...` body is completed by the loop, `@tool` methods are the model-callable capabilities, `tools`/`mcp` declare shared and external tools, structured output is enforced to `Output`, plus model, thinking effort, validation retries, and which trace context the step pulls (3.7).
+- `AgenticStep` — an LLM loop, NOOA-shaped (see 3.8). Everything LLM-specific lives here and not in the base class: the class docstring is the instruction, `run` with a `...` body is completed by the loop, `@tool` methods are the model-callable capabilities, `tools`/`mcp` declare shared and external tools, structured output is enforced to `Output`, and `context` declares which trace context the step pulls (3.7). Model tier, thinking effort and validation retries are lockfile fields (6.3), not class attributes.
 - `ShellStep` — runs a command in the step's environment; stdout/stderr/exit code mapped to outputs and exits.
 - `ProcessStep` — wraps a whole process as a step. Its inputs/outputs are the child process's inputs/outputs; internals are invisible to the parent. The child runs in the **same container**: the builder merges the child's env fragments recursively into the parent's single image. The child's `env.base`, `provider` and `latency` are ignored — the parent's apply — and the validator warns when they differ. Child trace events carry the parent `run.id` and a step path (`parent.child`), so `wynd trace` nests them and `steps.<name>.runs` counters are scoped per process instance.
 
@@ -58,8 +58,8 @@ An edge connects a step exit to the next step. Edges hold all routing and contro
   - a single branch with no `when:` is a plain transition to the next step (shorthand: `to: save`)
   - several branches form an if / elif chain; the first branch whose `when:` is true is taken
   - the first branch with no `when:` is the else; any branches after it are ignored (the validator warns)
-  - if every branch has a `when:` and none is true, the step resolves to its `error` exit and built-in error handling takes over (3.5)
-- **with**: mapping onto the target's inputs, declared on the branch. Values are expressions, so value-level conditionals are inline too.
+  - if every branch has a `when:` and none is true, the run routes to the process error handler (3.5)
+- **with**: mapping onto the target's inputs, declared on the branch. With the `to: <step>` shorthand, `with:` and `limits:` sit on the edge itself. Values are expressions, so value-level conditionals are inline too.
 - **limits**: `max_traversals`, `timeout`, retry policy — declared on the branch. `max_traversals` is a mandatory safety guard that the validator fills in automatically (default 10) on **every branch that lies on a cycle** (not just the one that "closes" it, which is DFS-order-dependent); authors never have to write it, and may raise or lower it. Exceeding it routes to the process error handler (3.5). Intended loop exits are expressed with counters in `when:` and an else branch.
 - **kind**: `deterministic` (v1) or `agentic` (schema only in v1)
 
@@ -139,7 +139,6 @@ class TriageStep(AgenticStep):
     class Spam(BaseModel):   exit: Literal["spam"] = "spam"
     Output = Done | Spam
 
-    model = "cheap"
     tools = [web_search]
     mcp = [McpServer("github", allow=["list_issues", "get_issue"])]
 
@@ -213,7 +212,7 @@ Rules:
 - **Versioned base images.** All process images derive from a `wynd-base` family built and published by this project: `wynd-base:<ver>-slim` (default) and `wynd-base:<ver>-alpine` (opt-in, for when every dependency is known to have musl wheels). Each contains Python 3.12+, `uv`, the vendored `runtime` package at the matching version, and the worker entrypoint. A process image is always `FROM wynd-base:<ver>-<variant>`, with the version pinned in `process.lock.yaml`. **`runtime` version and base version are the same number.**
 - Process builds add only what declared fragments (step or provider) require on top of the base: venvs, step wheels, `system:` packages. Nothing undeclared is ever installed at build time.
 - **Env manifest.** The compiler records each step's required env vars in `step.lock.yaml`; `wynd build` assembles `process.env.yaml` from those plus provider and storage vars: every env var the process needs to run (MCP server URLs and auth, API tokens, secrets, config, `WYND_HOME`, and the storage backend selectors from 7.1), with a description and which steps/tools use each. Nothing is baked in; the manifest is the contract for running the image anywhere. `wynd env check` verifies the current environment satisfies it before a run.
-- **Workspace per run**, keyed by `run.id` and cleaned up on completion, locally and in image mode. Steps pass file paths or small JSON envelopes; nothing large goes through the orchestrator. Per-run workspaces are also what prevents state leaking between runs in a warm container.
+- **Workspace per run**, keyed by `run.id` and cleaned up on completion, locally and in image mode — except when the run ends in the process error handler, which leaves it for inspection (3.5). Steps pass file paths or small JSON envelopes; nothing large goes through the orchestrator. Per-run workspaces are also what prevents state leaking between runs in a warm container.
 - **Warm pools**: for a served process, keep a container alive and dispatch runs into it. First run may be slow; second run should not touch Docker.
 - **Secrets**: env var references (3.8) sourced from a `.env` file locally or Kubernetes Secrets in a cluster. `wynd env check` is the gate. Nothing is ever baked into an image.
 
@@ -237,7 +236,7 @@ repo/
     process/    # YAML loader (via spec), graph validation, JobRunner interface, image builder. Never inside an image.
     compiler/   # LLM turns proto-steps + process into concrete steps; runs example tests; clarification loop.
     controller/ # API surface, JobRunner implementations, trigger scheduler, process/release registries. A library.
-    cli/        # `validate`, `compile`, `test`, `run`, `build`, `serve`. Imports the controller and runs it in-process.
+    cli/        # the `wynd` commands (10). Imports the controller and runs it in-process.
     web/        # Graph editor + compile chat. Pure view over the controller API served by `wynd serve-api`. LAST.
   examples/     # a sample workspace (see 5.1) used as fixtures and for dogfooding
   docs/
@@ -281,12 +280,13 @@ step_roots:
 - Processes live only under process roots; steps only under step roots.
 - Roots are committed workspace config, so every job sees the same map. The root schema has a `url:` field reserved for git- or registry-backed roots later; v1 resolves local paths only.
 
-**`use:` forms.** Exactly four; anything else is a validator error:
+**`use:` forms.** Exactly three; anything else, including relative traversal, is a validator error:
 
 - `./steps/<name>` — process-local step
 - `<alias>:<path>` — step from a configured step root (`shared:extract`, `finance:extract/invoice`)
 - `process:<id>` — another process as a `ProcessStep` (`process:finance/invoices`), resolved through process roots; child inputs/outputs are the contract, env fragments merge into the parent image, error exit propagates, all per 3.2
-- no relative traversal (`../`) across roots or processes
+
+Relative traversal (`../`) across roots or processes is not permitted.
 
 A parent's compiled hash includes the hashes of every child process's compiled steps, so editing a child returns the parent to design phase; same commit, same repo, so no version pinning is needed. Reference cycles are a load-time validator error.
 
@@ -341,11 +341,15 @@ env:
 entry: read                  # entry step; its Input is bound from process.inputs by field name
 inputs:
   pdf_path: path             # read.Input must declare pdf_path
-outputs:
-  record: object
+outputs:                     # nested by exit, as for proto-steps
+  done:
+    record: object
+  not_an_invoice: {}
+  needs_review: {}
 examples:
   - inputs: { pdf_path: examples/inv1.pdf }
     outputs: { record: { ... } }
+    exit: done
 steps:
   read:     { use: ./steps/read_pdf }
   extract:  { use: ./steps/extract_invoice_fields }
@@ -369,16 +373,15 @@ edges:
         when: steps.validate.outputs.valid
         with:
           record: steps.validate.outputs.record
-          dest: if steps.extract.outputs.total > 10000 then env.REVIEW_DIR
+          dest: if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR
                 else env.RECORDS_DIR
-          label: default(steps.extract.outputs.label, "unlabelled")
       - step: fix
         when: steps.validate.outputs.fixable and steps.fix.runs < 3
         with:
-          fields: steps.extract.outputs
+          fields: steps.validate.outputs.fields    # the fields just validated: extract's or fix's
           errors: steps.validate.outputs.errors
       - step: escalate      # else: not fixable, or already fixed 3 times
-        with: { fields: steps.extract.outputs, errors: steps.validate.outputs.errors }
+        with: { fields: steps.validate.outputs.fields, errors: steps.validate.outputs.errors }
   - from: fix.done
     to: validate
     with: { fields: steps.fix.outputs }
@@ -389,11 +392,11 @@ edges:
     to: $exit.needs_review
 ```
 
-`$exit.<name>` terminates the process with that exit. Process outputs are bound by the terminating edge's `with`. Routing is decided by the `to:` list: one edge per step exit, and the branches under `to:` form an if / elif / else chain evaluated top to bottom, each carrying its own `with:` and `limits:`. `to: save` is shorthand for a single unconditioned branch. Step exits (`Output.exit`) remain for outcomes that are categorically different; ordinary decisions are made from output fields via `when:`. A fully conditioned `to:` with no matching branch is an error (3.5).
+`$exit.<name>` terminates the process with that exit, which must be declared under `outputs`. Process outputs are nested by exit, like step outputs, and are bound by the terminating edge's `with`. With the `to: <step>` shorthand, `with:` sits on the edge itself. Routing is decided by the `to:` list: one edge per step exit, and the branches under `to:` form an if / elif / else chain evaluated top to bottom, each carrying its own `with:` and `limits:`. `to: save` is shorthand for a single unconditioned branch. Step exits (`Output.exit`) remain for outcomes that are categorically different; ordinary decisions are made from output fields via `when:`. A fully conditioned `to:` with no matching branch is an error (3.5).
 
 ### 6.3 Compiled step (what the compiler emits)
 
-A compiled step is a **source package** committed at `steps/<name>/`: `pyproject.toml`, the step module (subclassing the appropriate derivation), generated `test_<step>.py` (one test per example, plus compiler-proposed and user-confirmed edge cases), recorded cassettes, and `step.lock.yaml` recording kind chosen, provider + tier (if agentic), tools and MCP tool snapshots, env vars required, dependency lockfile, and proto-step hash. Test results are **not** in the lockfile (they would dirty the tree on every `wynd test`); they are recorded in the `RunRegistry` keyed by commit hash + step hash. This is the **review surface**: it is committed, diffed and hand-edited like any other code.
+A compiled step is a **source package** committed at `steps/<name>/`: `pyproject.toml`, the step module (subclassing the appropriate derivation), generated `test_<step>.py` (one test per example, plus compiler-proposed and user-confirmed edge cases), recorded cassettes, and `step.lock.yaml` recording kind chosen, provider + tier + thinking effort (if agentic), declared effects, tools and MCP tool snapshots, env vars required, dependency lockfile, and proto-step hash. Test results are **not** in the lockfile (they would dirty the tree on every `wynd test`); they are recorded in the `RunRegistry` keyed by commit hash + step hash. This is the **review surface**: it is committed, diffed and hand-edited like any other code.
 
 The **wheel** is a build output (6.4), containing the step module, its pinned dependency set and metadata (proto-step hash, kind, tool snapshot). Model tier is **not** in the wheel — it lives only in `step.lock.yaml` — so wheels stay reusable across processes at different tiers.
 
@@ -441,20 +444,20 @@ That is the entire base class. A plain (non-union) model is permitted as shortha
 
 ```python
 class AgenticStep(Step):
-    instruction: str
+    # the class docstring is the instruction
     context: list[str] = []
-    model: Literal["cheap", "standard", "strong"] = "cheap"   # abstract tier; provider resolves it
-    thinking: Literal["low", "medium", "high"] = "low"
     tools: list[Tool] = []
+    mcp: list[McpServer] = []
+    # model tier, thinking effort and retries come from step.lock.yaml, not the class
 
     def run(self, input: Input) -> Output:
-        # build prompt from instruction + assembled context + input
+        # build prompt from docstring + assembled context + input
         # call model with structured output = Output schema
         # validate; retry per policy; return
 ```
 
 - Prompting, structured output, context assembly, retries and tool handling are `AgenticStep` concerns only. `DeterministicStep` and `ShellStep` have none of this.
-- `run` must be side-effect free outside the workspace unless the step declares `effects: [network, filesystem, ...]`.
+- `run` must be side-effect free outside the workspace unless its `step.lock.yaml` declares `effects: [network, filesystem, ...]`.
 - Tests are ordinary pytest files generated by the compiler; `runtime` provides a `run_step(step, input)` helper the generated tests use so they exercise the full middleware chain, not just `run`.
 - **Agentic steps are tested by replay.** Every model call (request + response) is recorded into the trace as a cassette. Generated tests for agentic steps run in replay mode by default, so `wynd test` and the compiler's generate-test-revise loop are fast, deterministic and free. `wynd test --live` re-records against the real model.
 - **Cassettes cannot go stale silently.** Each entry is keyed on a hash of the full request (model, system prompt, messages, tool schemas) with volatile fields normalised out (timestamps, `now()`, `run.id`). A cache miss in replay mode fails the test with an explicit "no recording for this request — re-record with `wynd test --live`" error rather than passing on an old response. The compile job always records live while generating or revising a step and includes fresh cassettes in its output commit. Process-level cassettes are more brittle than step-level ones because upstream summaries are part of the request; expect to re-record them more often.
