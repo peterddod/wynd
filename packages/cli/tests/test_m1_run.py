@@ -42,6 +42,12 @@ def test_run_prints_steps_then_the_exit_and_outputs(ctl, cli, records_dir):
                                                                      {"text": "hello world"})
 
 
+def test_text_with_line_breaks_stays_on_its_step_line(ctl, cli):
+    lines = cli("run", "p1", "--inputs", '{"text": "hello\\nworld"}').stdout.splitlines()
+    assert lines[0].split()[:2] == ["upper", "done"] and 'text="HELLO\\nWORLD"' in lines[0]
+    assert lines[1].split()[:2] == ["count", "done"]
+
+
 def test_a_declared_non_error_exit_is_success(ctl, cli):
     result = cli("run", "p1", "--inputs", '{"text": "   "}')
     assert result.stdout.splitlines()[0].split()[:2] == ["upper", "empty"]

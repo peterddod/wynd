@@ -117,6 +117,11 @@ def test_long_values_are_clipped():
     assert len(lines[3]) == len("   out: ") + 400
 
 
+def test_text_with_line_breaks_stays_on_its_step_line():
+    events = trace(run_start(), start("read", 2), end("read", 2, 1, key={"text": "ACME Ltd\nINVOICE", "note": "a b"}))
+    assert render_events(events).splitlines()[1] == '└─ read            done   1ms     text="ACME Ltd\\nINVOICE" note=a b'
+
+
 def test_errors_timeouts_and_failed_checks():
     error = {"run_id": RUN, "process": PID, "step": "read", "cause": "step_error",
              "message": "step read took its error exit", "inputs": {}}

@@ -122,8 +122,13 @@ class StepLines:
 
 def _key_outputs(event: dict[str, Any]) -> str:
     keys = (event.get("summary") or {}).get("key_outputs") or {}
-    text = " ".join(f"{k}={v if isinstance(v, str) else _json(v)}" for k, v in keys.items())
+    text = " ".join(f"{k}={_value(v)}" for k, v in keys.items())
     return _clip(text, EXTRAS_LIMIT)
+
+
+def _value(value: Any) -> str:
+    """Plain text as is; anything else, or text with line breaks or tabs, as JSON (one line per step)."""
+    return value if isinstance(value, str) and value.isprintable() else _json(value)
 
 
 def _pad(text: str, width: int) -> str:

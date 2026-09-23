@@ -137,8 +137,13 @@ def _usage(end: StepEnd) -> str:
 def _key_outputs(end: StepEnd) -> str:
     if end.summary is None or not end.summary.key_outputs:
         return ""
-    text = " ".join(f"{k}={v if isinstance(v, str) else _json(v)}" for k, v in end.summary.key_outputs.items())
+    text = " ".join(f"{k}={_value(v)}" for k, v in end.summary.key_outputs.items())
     return _clip(text, EXTRAS_LIMIT)
+
+
+def _value(value: Any) -> str:
+    """Plain text as is; anything else, or text with line breaks or tabs, as JSON (one tree line per step)."""
+    return value if isinstance(value, str) and value.isprintable() else _json(value)
 
 
 def _duration(ms: float | None) -> str:
