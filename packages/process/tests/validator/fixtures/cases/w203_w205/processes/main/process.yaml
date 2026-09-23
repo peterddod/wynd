@@ -1,0 +1,18 @@
+kind: process
+name: main
+provider: claude-code
+entry: first
+inputs:
+  text: string
+outputs:
+  result: string
+steps:
+  first: { use: ./steps/first }
+  child: { use: process:child }
+edges:
+  - from: first.done
+    to: child
+    with: { value: steps.first.outputs.value }
+  - from: child.done
+    to: $exit.done
+    with: { result: steps.child.outputs.result }

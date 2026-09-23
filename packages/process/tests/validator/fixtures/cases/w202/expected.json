@@ -1,0 +1,8 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W202", "severity": "warning", "process": "main", "path": "steps.guess", "file": "processes/main/process.yaml"},
+    {"code": "E212", "severity": "warning", "process": "main", "path": "edges[0].to[0].with", "file": "processes/main/process.yaml"},
+    {"code": "E-REF-FIELD", "severity": "warning", "process": "main", "path": "edges[1].to[0].with.result", "file": "processes/main/process.yaml"}
+  ]
+}

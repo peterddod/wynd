@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E208", "severity": "error", "process": "main", "path": "steps.second", "file": "processes/main/process.yaml"}
+  ]
+}

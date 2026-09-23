@@ -1,0 +1,6 @@
+{
+  "process": "status",
+  "diagnostics": [
+    {"code": "E128", "severity": "error", "process": "status", "path": "name", "file": "processes/status/process.yaml"}
+  ]
+}

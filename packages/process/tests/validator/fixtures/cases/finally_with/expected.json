@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E-REF-EXIT", "severity": "error", "process": "main", "path": "finally[0].with.value", "file": "processes/main/process.yaml"},
+    {"code": "E-REF-UNRUN", "severity": "error", "process": "main", "path": "finally[0].with.value", "file": "processes/main/process.yaml"}
+  ]
+}

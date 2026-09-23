@@ -145,6 +145,7 @@ def _load(ws: Workspace, pid: str, stack: tuple[str, ...]) -> LoadedProcess:
             steps[key] = ResolvedStep(key, ref.use, use.form, package, None)
 
     lp = LoadedProcess(pid, entry.dir, path, doc, source, steps, children, diagnostics)
+    lp._tree = ws.tree            # not a field: lets `validate(lp)` read step files and edges.lock.yaml (PLAN §6.3)
     ws._loaded[pid] = lp
     return lp
 

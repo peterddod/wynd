@@ -1,0 +1,28 @@
+kind: process
+name: main
+entry: first
+inputs:
+  text: string
+outputs:
+  result: string
+steps:
+  first:  { use: ./steps/first }
+  second: { use: ./steps/second }
+  lonely: { use: ./steps/second }
+  late:   { use: ./steps/second }
+edges:
+  - from: first.done
+    to:
+      - step: second
+        with: { value: steps.first.outputs.value }
+      - step: late
+        with: { value: steps.first.outputs.value }
+  - from: second.done
+    to: $exit.done
+    with: { result: steps.second.outputs.result }
+  - from: lonely.done
+    to: $exit.done
+    with: { result: steps.lonely.outputs.result }
+  - from: late.done
+    to: $exit.done
+    with: { result: steps.late.outputs.result }

@@ -1,0 +1,123 @@
+# Hand-written step (M1 dogfood); the review surface for this package.
+# `wynd validate process_supplier_invoice --sync-interfaces` refreshes the interface snapshot.
+wynd: 1
+name: fix_fields
+kind: agentic
+entrypoint: fix_fields:FixFields
+proto_hash: sha256:c97dcae887453bdd99743f50838673fbc2b36e1b5885865982642bfb4b1d71e9
+tier: cheap
+thinking: low
+builtin_tools: []
+retries:
+  run: 2
+  validation: 2
+  tool: 1
+effects: []
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    $defs:
+      FieldError:
+        properties:
+          field:
+            title: Field
+            type: string
+          code:
+            title: Code
+            type: string
+          message:
+            title: Message
+            type: string
+          fixable:
+            title: Fixable
+            type: boolean
+        required:
+        - field
+        - code
+        - message
+        - fixable
+        title: FieldError
+        type: object
+      InvoiceFields:
+        properties:
+          supplier:
+            title: Supplier
+            type: string
+          invoice_number:
+            title: Invoice Number
+            type: string
+          total:
+            title: Total
+            type: number
+          currency:
+            title: Currency
+            type: string
+          due_date:
+            format: date
+            title: Due Date
+            type: string
+        required:
+        - supplier
+        - invoice_number
+        - total
+        - currency
+        - due_date
+        title: InvoiceFields
+        type: object
+    properties:
+      invoice_text:
+        title: Invoice Text
+        type: string
+      fields:
+        $ref: '#/$defs/InvoiceFields'
+      errors:
+        items:
+          $ref: '#/$defs/FieldError'
+        title: Errors
+        type: array
+    required:
+    - invoice_text
+    - fields
+    - errors
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        supplier:
+          title: Supplier
+          type: string
+        invoice_number:
+          title: Invoice Number
+          type: string
+        total:
+          title: Total
+          type: number
+        currency:
+          title: Currency
+          type: string
+        due_date:
+          format: date
+          title: Due Date
+          type: string
+      required:
+      - supplier
+      - invoice_number
+      - total
+      - currency
+      - due_date
+      title: Output
+      type: object

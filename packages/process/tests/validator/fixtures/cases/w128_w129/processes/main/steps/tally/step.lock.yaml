@@ -1,0 +1,6 @@
+wynd: 1
+name: tally
+kind: deterministic
+entrypoint: tally:Tally
+fragment:
+  deps: ["pypdf>=6,<7"]

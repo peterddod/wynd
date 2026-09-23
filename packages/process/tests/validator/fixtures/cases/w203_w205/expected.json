@@ -1,0 +1,8 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W203", "severity": "warning", "process": "main", "path": "steps.child", "file": "processes/main/process.yaml"},
+    {"code": "W204", "severity": "warning", "process": "main", "path": "steps.child", "file": "processes/main/process.yaml"},
+    {"code": "W205", "severity": "warning", "process": "main", "path": "steps.child", "file": "processes/main/process.yaml"}
+  ]
+}

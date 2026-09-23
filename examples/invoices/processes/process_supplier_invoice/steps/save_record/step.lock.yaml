@@ -1,0 +1,118 @@
+# Hand-written step (M1 dogfood); the review surface for this package.
+# `wynd validate process_supplier_invoice --sync-interfaces` refreshes the interface snapshot.
+wynd: 1
+name: save_record
+kind: deterministic
+entrypoint: save_record:SaveRecord
+proto_hash: sha256:3389dec23d630edb02c84a6e72f0679945cec9e4a04f3debfdaf804873fe8bfa
+builtin_tools: []
+retries:
+  run: 0
+  validation: 0
+  tool: 0
+effects:
+- filesystem
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    $defs:
+      InvoiceRecord:
+        properties:
+          key:
+            title: Key
+            type: string
+          supplier:
+            title: Supplier
+            type: string
+          invoice_number:
+            title: Invoice Number
+            type: string
+          total:
+            title: Total
+            type: number
+          currency:
+            title: Currency
+            type: string
+          due_date:
+            format: date
+            title: Due Date
+            type: string
+        required:
+        - key
+        - supplier
+        - invoice_number
+        - total
+        - currency
+        - due_date
+        title: InvoiceRecord
+        type: object
+    properties:
+      record:
+        $ref: '#/$defs/InvoiceRecord'
+      dest:
+        format: path
+        title: Dest
+        type: string
+    required:
+    - record
+    - dest
+    title: Input
+    type: object
+  outputs:
+    done:
+      $defs:
+        InvoiceRecord:
+          properties:
+            key:
+              title: Key
+              type: string
+            supplier:
+              title: Supplier
+              type: string
+            invoice_number:
+              title: Invoice Number
+              type: string
+            total:
+              title: Total
+              type: number
+            currency:
+              title: Currency
+              type: string
+            due_date:
+              format: date
+              title: Due Date
+              type: string
+          required:
+          - key
+          - supplier
+          - invoice_number
+          - total
+          - currency
+          - due_date
+          title: InvoiceRecord
+          type: object
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        record:
+          $ref: '#/$defs/InvoiceRecord'
+        path:
+          format: path
+          title: Path
+          type: string
+      required:
+      - record
+      - path
+      title: Output
+      type: object

@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W207", "severity": "warning", "process": "main", "path": "provider", "file": "processes/main/process.yaml"},
+    {"code": "W207", "severity": "warning", "process": "main", "path": "provider", "file": "processes/main/steps/think/step.lock.yaml"}
+  ]
+}

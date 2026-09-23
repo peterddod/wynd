@@ -1,0 +1,8 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E209", "severity": "error", "process": "main", "path": "steps.lonely", "file": "processes/main/process.yaml"},
+    {"code": "E209", "severity": "error", "process": "main", "path": "steps.late", "file": "processes/main/process.yaml"},
+    {"code": "W-BRANCH-UNREACHABLE", "severity": "warning", "process": "main", "path": "edges[0].to[1]", "file": "processes/main/process.yaml"}
+  ]
+}

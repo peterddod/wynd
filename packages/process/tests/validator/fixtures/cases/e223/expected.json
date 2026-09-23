@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E223", "severity": "error", "process": "main", "path": "on_error", "file": "processes/main/process.yaml"}
+  ]
+}

@@ -1,0 +1,14 @@
+kind: process
+name: main
+provider: nope
+entry: think
+inputs:
+  text: string
+outputs:
+  result: string
+steps:
+  think: { use: ./steps/think }
+edges:
+  - from: think.done
+    to: $exit.done
+    with: { result: steps.think.outputs.result }

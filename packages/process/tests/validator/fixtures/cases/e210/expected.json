@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E210", "severity": "error", "process": "main", "path": "entry", "file": "processes/main/process.yaml"},
+    {"code": "E210", "severity": "error", "process": "main", "path": "inputs", "file": "processes/main/process.yaml"}
+  ]
+}

@@ -6,15 +6,19 @@ The types are the W0-complete contract. `new_job_record` resolves the full sha, 
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 
 from pydantic import BaseModel
 
+from wynd.runtime.ids import new_id
 from wynd.runtime.usage import Usage
+
+from .git import prefix, rev_parse
 
 if TYPE_CHECKING:
     from wynd.runtime.storage.base import Registry, RunRegistry
@@ -22,6 +26,7 @@ if TYPE_CHECKING:
 JobKind = Literal["compile", "test_live", "build", "bake", "optimise"]
 JobStatus = Literal["queued", "running", "awaiting_input", "succeeded", "failed", "cancelled"]
 TERMINAL: frozenset[str] = frozenset({"succeeded", "failed", "cancelled"})   # awaiting_input = stable wait state
+COMMIT_KINDS: frozenset[str] = frozenset({"compile", "test_live", "optimise"})  # kinds whose outcome is a commit
 
 
 class JobUsage(Usage):                       # totals over the job (Usage §3.13)
@@ -117,10 +122,48 @@ class JobRunner(Protocol):                   # SPEC §6.6's four operations + ca
 def new_job_record(
     kind: JobKind, ref: str, inputs: Mapping[str, Any], *, ws_root: Path, runner: str, handler: str
 ) -> JobRecord:
-    raise NotImplementedError("PLAN §3.18 new_job_record")
+    """A queued record for a job on the commit `ref` names (resolved to its full sha, which is also the base commit).
+
+    `inputs["process"]` is required; commit-producing kinds also need `inputs["target_branch"]` (the branch the result
+    integrates into; it is never read from a checkout). `ValueError` when either is missing."""
+    process = inputs.get("process")
+    if not process:
+        raise ValueError(f"{kind} job inputs need 'process'")
+    target_branch = inputs.get("target_branch") if kind in COMMIT_KINDS else None
+    if kind in COMMIT_KINDS and not target_branch:
+        raise ValueError(f"{kind} job inputs need 'target_branch' (the branch its result integrates into)")
+    sha = rev_parse(ws_root, ref)
+    now = datetime.now(UTC)
+    return JobRecord(
+        id=new_id("job"),
+        job_kind=kind,
+        process=process,
+        ref=sha,
+        base_commit=sha,
+        target_branch=target_branch,
+        workspace_rel=prefix(ws_root).rstrip("/"),
+        inputs=dict(inputs),
+        status="queued",
+        runner=runner,
+        handler=handler,
+        created_at=now,
+        updated_at=now,
+    )
 
 
 def wait_for(
     runner: JobRunner, job_id: str, *, poll_s: float = 0.5, timeout_s: float | None = None
 ) -> JobRecord:
-    raise NotImplementedError("PLAN §3.18 wait_for")
+    """Poll `runner.status` until the job is terminal or awaiting input; `TimeoutError` after `timeout_s`."""
+    deadline = None if timeout_s is None else time.monotonic() + timeout_s
+    while True:
+        record = runner.status(job_id)
+        if record.status in TERMINAL or record.status == "awaiting_input":
+            return record
+        if deadline is None:
+            time.sleep(poll_s)
+            continue
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError(f"job {job_id} is still {record.status} after {timeout_s:g}s")
+        time.sleep(min(poll_s, remaining))

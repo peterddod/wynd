@@ -1,0 +1,15 @@
+wynd: 1
+name: think
+kind: agentic
+entrypoint: think:Think
+provider: missing-too
+interface:
+  input:
+    type: object
+    properties: { text: { type: string } }
+    required: [text]
+  outputs:
+    done:
+      type: object
+      properties: { exit: { const: done }, result: { type: string } }
+      required: [result]

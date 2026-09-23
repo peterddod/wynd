@@ -1,0 +1,10 @@
+kind: proto_step
+name: first
+instruction: Turn the text into a value.
+inputs:
+  text: string
+outputs:
+  value: string
+examples:
+  - inputs: { text: a }
+    outputs: { value: A }

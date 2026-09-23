@@ -1,0 +1,10 @@
+[project]
+name = "process_supplier_invoice-fix_fields"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+# wynd-spec and wynd-runtime are not listed: they are installed into every step venv (SPEC §4).
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
