@@ -1,0 +1,99 @@
+kind: proto_step
+name: validate_fields
+instruction: |
+  Validate invoice fields against the accounts-payable rules and normalise them into a record.
+  Normalise first: collapse runs of whitespace in supplier to single spaces and trim; strip and
+  upper-case invoice_number and currency; round total to 2 decimal places.
+  Then check, in this order, collecting every error as {field, code, message, fixable}:
+  - supplier empty: missing_supplier, "supplier is empty", fixable
+  - invoice_number not matching [A-Z0-9][A-Z0-9/-]{1,31}: bad_invoice_number,
+    "invoice_number '<value>' must be 2-32 characters of A-Z, 0-9, '/' or '-'", fixable
+  - total <= 0: non_positive_total, "total <total, 2 dp> must be greater than zero", not fixable
+  - otherwise total > 1000000: total_over_limit, "total <total, 2 dp> exceeds the 1,000,000 approval limit", not fixable
+  - currency not in AUD CAD CHF CNY CZK DKK EUR GBP HKD INR JPY NOK NZD PLN SEK SGD USD ZAR:
+    unsupported_currency, "currency '<value>' is not a supported ISO 4217 code", fixable
+  - due_date outside 2000-01-01..2100-12-31: due_date_out_of_range,
+    "due_date <ISO date> is outside 2000-01-01..2100-12-31", fixable
+  valid: there are no errors. fixable: there is at least one error and every error is fixable.
+  fields: the normalised fields. record: the normalised fields plus key, which is
+  "<slug>__<invoice_number>" where slug is the lower-cased supplier with each run of characters
+  outside a-z and 0-9 replaced by "-" and leading/trailing "-" removed.
+inputs:
+  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }
+outputs:
+  valid: boolean
+  fixable: boolean
+  errors: [ { field: string, code: string, message: string, fixable: boolean } ]
+  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }
+  record: { key: string, supplier: string, invoice_number: string, total: number, currency: string, due_date: date }
+examples:
+  - inputs: { fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 } }
+    outputs:
+      valid: true
+      fixable: false
+      errors: []
+      fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 }
+      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 }
+    exit: done
+  - inputs: { fields: { supplier: "  Globex   Corporation ", invoice_number: " gx-77810", total: 14250.004, currency: usd, due_date: 2026-11-15 } }
+    outputs:
+      valid: true
+      fixable: false
+      errors: []
+      fields: { supplier: Globex Corporation, invoice_number: GX-77810, total: 14250.0, currency: USD, due_date: 2026-11-15 }
+      record: { key: globex-corporation__GX-77810, supplier: Globex Corporation, invoice_number: GX-77810, total: 14250.0, currency: USD, due_date: 2026-11-15 }
+    exit: done
+  - inputs: { fields: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: "$", due_date: 2026-10-20 } }
+    outputs:
+      valid: false
+      fixable: true
+      errors: [ { field: currency, code: unsupported_currency, message: "currency '$' is not a supported ISO 4217 code", fixable: true } ]
+      fields: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: "$", due_date: 2026-10-20 }
+      record: { key: initech-canada-inc__IC-5521, supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: "$", due_date: 2026-10-20 }
+    exit: done
+  - inputs: { fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 } }
+    outputs:
+      valid: false
+      fixable: false
+      errors: [ { field: total, code: non_positive_total, message: "total -250.00 must be greater than zero", fixable: false } ]
+      fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 }
+      record: { key: hooli-ltd__CN-311, supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 }
+    exit: done
+  - inputs: { fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: "$", due_date: 2026-10-18 } }
+    outputs:
+      valid: false
+      fixable: false                        # one unfixable error makes the whole set unfixable
+      errors:
+        - { field: total, code: non_positive_total, message: "total -250.00 must be greater than zero", fixable: false }
+        - { field: currency, code: unsupported_currency, message: "currency '$' is not a supported ISO 4217 code", fixable: true }
+      fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: "$", due_date: 2026-10-18 }
+      record: { key: hooli-ltd__CN-311, supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: "$", due_date: 2026-10-18 }
+    exit: done
+  - inputs: { fields: { supplier: "", invoice_number: "", total: 10.0, currency: EUR, due_date: 2026-12-01 } }
+    outputs:
+      valid: false
+      fixable: true
+      errors:
+        - { field: supplier, code: missing_supplier, message: "supplier is empty", fixable: true }
+        - { field: invoice_number, code: bad_invoice_number, message: "invoice_number '' must be 2-32 characters of A-Z, 0-9, '/' or '-'", fixable: true }
+      fields: { supplier: "", invoice_number: "", total: 10.0, currency: EUR, due_date: 2026-12-01 }
+      record: { key: __, supplier: "", invoice_number: "", total: 10.0, currency: EUR, due_date: 2026-12-01 }
+    exit: done
+  - inputs: { fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 1999-10-01 } }
+    outputs:
+      valid: false
+      fixable: true
+      errors: [ { field: due_date, code: due_date_out_of_range, message: "due_date 1999-10-01 is outside 2000-01-01..2100-12-31", fixable: true } ]
+      fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 1999-10-01 }
+      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 1999-10-01 }
+    exit: done
+  - inputs: { fields: { supplier: Globex Corporation, invoice_number: GX-1, total: 2000000.0, currency: USD, due_date: 2026-12-01 } }
+    outputs:
+      valid: false
+      fixable: false
+      errors: [ { field: total, code: total_over_limit, message: "total 2000000.00 exceeds the 1,000,000 approval limit", fixable: false } ]
+      fields: { supplier: Globex Corporation, invoice_number: GX-1, total: 2000000.0, currency: USD, due_date: 2026-12-01 }
+      record: { key: globex-corporation__GX-1, supplier: Globex Corporation, invoice_number: GX-1, total: 2000000.0, currency: USD, due_date: 2026-12-01 }
+    exit: done
+env:
+  deps: []

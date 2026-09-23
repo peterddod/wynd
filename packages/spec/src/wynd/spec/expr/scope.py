@@ -41,11 +41,18 @@ class Scope:
 
     def complete(self, step: str, exit: str, outputs: Mapping[str, Any], summary: Mapping[str, Any] | None) -> None:
         """runs += 1; set exit/outputs/summary; previous = step."""
-        raise NotImplementedError("PLAN §3.5")
+        state = self.steps[step]
+        state.runs += 1
+        state.exit = exit
+        state.outputs = dict(outputs)
+        state.summary = dict(summary) if summary is not None else None
+        self.previous = step
 
     def take(self, edge: str, branch: int) -> int:
         """taken[branch] += 1; returns the new count."""
-        raise NotImplementedError("PLAN §3.5")
+        taken = self.edges[edge].taken
+        taken[branch] += 1
+        return taken[branch]
 
 
 def new_scope(
@@ -56,4 +63,19 @@ def new_scope(
     run_id: str,
     clock: Callable[[], datetime] = utc_now,
 ) -> Scope:
-    raise NotImplementedError("PLAN §3.5")
+    """A fresh scope for one instance of `doc` (a normalised definition: to-lists, after-else branches dropped)."""
+    edges = {
+        edge.from_: EdgeState(
+            taken=[0] * len(edge.to),
+            names={branch.name: index for index, branch in enumerate(edge.to) if branch.name is not None},
+        )
+        for edge in doc.edges
+    }
+    return Scope(
+        steps={key: StepState() for key in doc.steps},
+        edges=edges,
+        process_inputs=dict(inputs),
+        env=env,
+        run_id=run_id,
+        clock=clock,
+    )

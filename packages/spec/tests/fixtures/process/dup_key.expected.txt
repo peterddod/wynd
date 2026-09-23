@@ -1,0 +1,1 @@
+process/dup_key.yaml:6:1: error[E-YAML-DUP] entry: duplicate key 'entry'

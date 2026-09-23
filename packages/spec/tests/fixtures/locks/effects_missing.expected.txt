@@ -1,0 +1,1 @@
+locks/effects_missing.yaml:5:10: error[E-LOCK] effects: effects must declare network (used by tool web_search)

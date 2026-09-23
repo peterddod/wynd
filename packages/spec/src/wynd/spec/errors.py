@@ -7,6 +7,17 @@ from typing import Literal
 Severity = Literal["error", "warning", "info"]
 Loc = tuple[str | int, ...]
 
+# The spec code namespace (PLAN §3.2); every code wynd.spec emits is listed here (a test scans the sources).
+CODES = frozenset({
+    "E-YAML", "E-YAML-DUP", "E-YAML-ROOT", "E-SCHEMA", "E-KIND", "E-TYPE", "E-OUTPUTS", "W-OUTPUTS-AMBIGUOUS", "E-USE",
+    "E-TO", "E-ROOTS", "E-EXPR-SYNTAX", "E-EXPR-FUNC", "E-EXPR-ARITY", "E-REF-NAME", "E-REF-SHAPE", "E-REF-STEP",
+    "E-REF-FIELD", "E-REF-UNRUN", "E-REF-EXIT", "E-REF-INPUT", "E-REF-EDGE", "E-CONTEXT", "E-EXAMPLE",
+    "W-PROTO-NO-EXAMPLES", "W-PROTO-EXIT-UNTESTED", "E-EXIT-CODES", "E-ENTRY", "E-STEP-UNKNOWN", "E-EDGE-DUP",
+    "E-EXIT-TARGET", "E-IGNORE-FORM", "E-BRANCH-NAME", "W-BRANCH-UNREACHABLE", "W-LIMITS-EXIT", "E-HANDLER-ROLE",
+    "E-LOCK", "E-ENV-MISSING", "E-ENV-ONE-OF", "W-ENV-ONE-OF", "E-ENV-CONFLICT", "E-TYPE-OP", "W-TYPE-NULL",
+    "E-TYPE-ASSIGN", "W-TYPE-ASSIGN",
+})
+
 
 @dataclass(frozen=True)
 class Diagnostic:

@@ -1,7 +1,7 @@
 """Expression AST: frozen dataclasses; line/column are 1-based within the expression text (PLAN §3.5;
 $DRAFTS/01 §7.3)."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -9,6 +9,9 @@ from typing import Any
 class Node:
     line: int
     column: int
+    # 0-based [start, end) character offsets of the node inside the expression text (Lark positions); diagnostics
+    # carry it as `Diagnostic.span`.
+    span: tuple[int, int] | None = field(default=None, kw_only=True, compare=False, repr=False)
 
 
 @dataclass(frozen=True)

@@ -8,13 +8,15 @@ class ExprError(ValueError):
 
 
 class ExprSyntaxError(ExprError):
-    """The expression does not parse; line/column are 1-based within the expression text."""
+    """The expression does not parse; line/column are 1-based within the expression text, `span` the 0-based
+    [start, end) offsets of the offending token (empty at the end of the text)."""
 
-    def __init__(self, text: str, line: int, column: int, message: str):
+    def __init__(self, text: str, line: int, column: int, message: str, span: tuple[int, int] | None = None):
         self.text = text
         self.line = line
         self.column = column
         self.message = message
+        self.span = span
         super().__init__(f"{line}:{column}: {message}")
 
 

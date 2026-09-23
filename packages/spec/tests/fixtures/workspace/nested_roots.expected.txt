@@ -1,0 +1,1 @@
+workspace/nested_roots.yaml:1:17: error[E-ROOTS] process_roots[0]: roots 'processes' and 'processes/shared' overlap: roots must not be equal or nested

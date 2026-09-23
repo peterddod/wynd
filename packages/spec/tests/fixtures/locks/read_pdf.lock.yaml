@@ -1,0 +1,25 @@
+wynd: 1
+name: read_pdf
+kind: deterministic
+entrypoint: read_pdf:ReadPdf
+proto_hash: sha256:9a0c1b2d3e4f5061728394a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f
+effects: [filesystem]
+fragment:
+  deps: ["pypdf>=6,<7"]
+locked_deps: ["pypdf==6.19.0"]
+interface:
+  input:
+    title: Input
+    type: object
+    properties:
+      pdf_path: { format: path, title: Pdf Path, type: string }
+    required: [pdf_path]
+  outputs:
+    done:
+      title: Done
+      type: object
+      properties:
+        exit: { const: done, default: done, title: Exit, type: string }
+        text: { title: Text, type: string }
+        pages: { title: Pages, type: integer }
+      required: [text, pages]

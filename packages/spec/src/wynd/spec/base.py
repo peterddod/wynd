@@ -13,6 +13,13 @@ class SpecModel(BaseModel):
     # `source` property ($DRAFTS/01 §4.1): it would shadow the `source` fields of ToolSnapshot and FragmentRecord.
     _source: Any = PrivateAttr(default=None)
 
+    def __eq__(self, other: object) -> bool:
+        """Documents are equal when their fields are: private state (the source map of a loaded document) is not
+        content."""
+        if not isinstance(other, BaseModel):
+            return NotImplemented
+        return type(self) is type(other) and self.__dict__ == other.__dict__
+
 
 Name = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]*$")]
 StepKey = Annotated[str, StringConstraints(pattern=r"^[a-z_][a-z0-9_]*$")]

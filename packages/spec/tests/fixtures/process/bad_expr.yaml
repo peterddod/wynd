@@ -1,0 +1,20 @@
+kind: process
+name: bad_expr
+entry: validate
+inputs:
+  fields: object
+outputs:
+  record: object
+steps:
+  validate: { use: ./steps/validate_fields }
+  save: { use: ./steps/save_record }
+edges:
+  - from: validate.done
+    to:
+      - step: save
+        with:
+          record: steps.validate.outputs.record
+          dest: if steps.validate.outputs.total > 10000 then env.REVIEW_DIR elze env.RECORDS_DIR
+  - from: save.done
+    to: $exit.done
+    with: { record: steps.save.outputs.record }

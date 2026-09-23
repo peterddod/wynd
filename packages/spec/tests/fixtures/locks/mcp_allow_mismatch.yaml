@@ -1,0 +1,11 @@
+wynd: 1
+name: triage
+kind: agentic
+entrypoint: triage:Triage
+effects: [network]
+mcp:
+  - server: github
+    allow: [search_issues, create_issue]
+    tools:
+      - { name: search_issues, input_schema: { type: object } }
+    hash: sha256:0000000000000000000000000000000000000000000000000000000000000000

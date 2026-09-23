@@ -1,0 +1,22 @@
+wynd: 1
+name: extract_invoice_fields
+kind: agentic
+entrypoint: extract_invoice_fields:ExtractInvoiceFields
+tier: cheap
+thinking: low
+builtin_tools: [Read, Grep]
+retries: { run: 2, validation: 2, tool: 1 }
+effects: [network, shell]
+tools:
+  - { name: web_search, source: library, effects: [network], idempotent: true, env: [BRAVE_API_KEY] }
+  - { name: shell, source: library, effects: [shell], allow: [pdftotext] }
+mcp:
+  - server: github
+    allow: [search_issues]
+    tools:
+      - { name: search_issues, input_schema: { type: object } }
+    hash: sha256:0000000000000000000000000000000000000000000000000000000000000000
+context: [process.goal, previous.summary, steps.read.outputs.text]
+fragment:
+  vars:
+    - { name: BRAVE_API_KEY, secret: true }

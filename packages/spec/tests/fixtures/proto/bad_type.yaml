@@ -1,0 +1,8 @@
+kind: proto_step
+name: bad_type
+instruction: Parse a thing.
+inputs:
+  text: string
+  count: integr
+outputs:
+  ok: boolean

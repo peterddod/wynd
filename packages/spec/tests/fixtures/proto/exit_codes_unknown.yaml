@@ -1,0 +1,16 @@
+kind: proto_step
+name: exit_codes_unknown
+instruction: Run the converter.
+inputs:
+  src: path
+outputs:
+  done:
+    out: path
+  not_found: {}
+exits: [done, not_found]
+exit_codes: { 0: done, 1: not_found, 2: missing, "*": error }
+examples:
+  - inputs: { src: in.txt }
+    outputs: { out: out.txt }
+  - inputs: { src: nope.txt }
+    exit: not_found

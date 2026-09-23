@@ -1,0 +1,1 @@
+proto/exit_codes_unknown.yaml:11:41: error[E-EXIT-CODES] exit_codes[2]: exit code 2 maps to 'missing', which is not a declared exit (done, not_found) or 'error'

@@ -1,0 +1,1 @@
+process/kind_wrong.yaml:1:7: error[E-KIND] kind: kind must be 'process'

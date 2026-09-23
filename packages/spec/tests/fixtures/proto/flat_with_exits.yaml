@@ -1,0 +1,9 @@
+kind: proto_step
+name: flat_with_exits
+instruction: Classify a document.
+inputs:
+  text: string
+outputs:
+  kind: string
+  confidence: number
+exits: [done, unknown]

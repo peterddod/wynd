@@ -1,0 +1,1 @@
+process/not_mapping.yaml:1:1: error[E-YAML-ROOT]: the document must be a mapping, got a list

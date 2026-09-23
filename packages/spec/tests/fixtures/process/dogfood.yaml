@@ -1,0 +1,72 @@
+kind: process
+name: process_supplier_invoice
+goal: Turn a supplier invoice PDF into a validated record in the records store.
+provider: claude-code                 # default provider
+env:
+  base: debian-slim-python
+  vars:
+    RECORDS_DIR: Directory for records.
+    REVIEW_DIR: Directory for review.
+    ESCALATIONS_DIR: Escalation tickets.
+entry: read
+inputs:
+  pdf_path: path
+outputs:
+  done:
+    record: object
+  not_an_invoice: {}
+  needs_review: {}
+examples:
+  - inputs: { pdf_path: examples/acme_inv_1042.pdf }
+    env: &dirs { RECORDS_DIR: "{tmp}/records", REVIEW_DIR: "{tmp}/review", ESCALATIONS_DIR: "{tmp}/escalations" }
+    outputs:
+      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042,
+                total: 1200.5, currency: GBP, due_date: 2026-10-01 }
+    exit: done
+  - inputs: { pdf_path: examples/shipping_notice.pdf }
+    env: *dirs
+    exit: not_an_invoice
+steps:
+  read:     { use: ./steps/read_pdf }
+  extract:  { use: ./steps/extract_invoice_fields }
+  validate: { use: ./steps/validate_fields }
+  fix:      { use: ./steps/fix_fields }
+  save:     { use: ./steps/save_record }
+  escalate: { use: ./steps/escalate_to_human }
+edges:
+  - from: read.done
+    to: extract
+    with: { invoice_text: steps.read.outputs.text }
+  - from: extract.done
+    to: validate
+    with: { fields: steps.extract.outputs }
+  - from: extract.not_an_invoice
+    to: $exit.not_an_invoice
+  - from: validate.done
+    to:
+      - step: save
+        when: steps.validate.outputs.valid
+        with:
+          record: steps.validate.outputs.record
+          dest: if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR
+                else env.RECORDS_DIR
+      - step: fix
+        when: steps.validate.outputs.fixable and steps.fix.runs < 3
+        with:
+          invoice_text: steps.read.outputs.text
+          fields: steps.validate.outputs.fields
+          errors: steps.validate.outputs.errors
+      - step: escalate
+        with:
+          fields: steps.validate.outputs.fields
+          errors: steps.validate.outputs.errors
+          queue_dir: env.ESCALATIONS_DIR
+          run_id: run.id
+  - from: fix.done
+    to: validate
+    with: { fields: steps.fix.outputs }
+  - from: save.done
+    to: $exit.done
+    with: { record: steps.save.outputs.record }
+  - from: escalate.done
+    to: $exit.needs_review

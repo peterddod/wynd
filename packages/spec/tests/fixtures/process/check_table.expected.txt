@@ -1,0 +1,19 @@
+process/check_table.yaml:3:8: error[E-ENTRY] entry: entry 'start' is not a key of steps (read, save, park, cleanup)
+process/check_table.yaml:30:17: warning[W-LIMITS-EXIT] edges[0].to[1].limits: limits: on the '$exit.parked' branch have no effect
+process/check_table.yaml:28:15: error[E-BRANCH-NAME] edges[0].to[1].name: branch name 'go' is used by branches 0 and 1 of 'read.done'
+process/check_table.yaml:31:15: error[E-EXIT-TARGET] edges[0].to[2].step: '$exit.error' is not a routable target: the process error exit is produced only by the error handler
+process/check_table.yaml:32:9: warning[W-BRANCH-UNREACHABLE] edges[0].to[3]: branch 3 of 'read.done' comes after the else branch 2 (no when:) and is never taken
+process/check_table.yaml:32:15: error[E-STEP-UNKNOWN] edges[0].to[3].step: branch target 'nowhere' is not a key of steps (read, save, park, cleanup), $exit.<name> or $ignore
+process/check_table.yaml:33:11: error[E-EDGE-DUP] edges[1].from: 'read.done' already has an edge (edges[0]); one edge per exit
+process/check_table.yaml:35:15: error[E-IGNORE-FORM] edges[1].to[0].step: $ignore must be the single unconditioned branch of an edge, without with: or limits:
+process/check_table.yaml:37:11: error[E-STEP-UNKNOWN] edges[2].from: edge from 'ghost.done': 'ghost' is not a key of steps (read, save, park, cleanup)
+process/check_table.yaml:38:9: error[E-EXIT-TARGET] edges[2].to[0].step: '$exit.nope' is not a declared process exit (done, parked)
+process/check_table.yaml:40:9: error[E-IGNORE-FORM] edges[3].to[0].step: $ignore must be the single unconditioned branch of an edge, without with: or limits:
+process/check_table.yaml:14:11: error[E-HANDLER-ROLE] on_error: on_error step 'park' must not be the from of an edge: its exits are not routed
+process/check_table.yaml:15:20: error[E-HANDLER-ROLE] finally[1].step: finally step 'save' must not be a branch target
+process/check_table.yaml:29:15: error[E-EXPR-FUNC] edges[0].to[1].when: unknown function 'nofunc'
+    nofunc(steps.read.outputs.ok)
+    ^
+process/check_table.yaml:9:23: error[E-EXAMPLE] examples[0].inputs.amount: 'amount' is not an input
+process/check_table.yaml:10:23: error[E-EXAMPLE] examples[0].outputs.total: Input should be a valid number, unable to parse string as a number
+process/check_table.yaml:13:11: error[E-EXAMPLE] examples[1].exit: example exit 'vanished' is not a declared exit (done, parked) or 'error'

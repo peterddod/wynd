@@ -1,0 +1,1 @@
+process/flow_optional.yaml:4:19: error[E-YAML]: expected ',' or '}', but got '?' (while parsing a flow mapping); inside `{ }` or `[ ]` flow collections, quote types such as "date?" or "list[string]"; block style needs no quotes

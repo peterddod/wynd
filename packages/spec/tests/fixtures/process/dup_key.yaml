@@ -1,0 +1,6 @@
+kind: process
+name: dup_key
+entry: read
+steps:
+  read: { use: ./steps/read_pdf }
+entry: extract

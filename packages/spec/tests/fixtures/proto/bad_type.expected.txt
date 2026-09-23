@@ -1,0 +1,1 @@
+proto/bad_type.yaml:6:10: error[E-TYPE] inputs.count: unknown type 'integr' (expected one of boolean, date, datetime, integer, number, object, path, string, list[...])

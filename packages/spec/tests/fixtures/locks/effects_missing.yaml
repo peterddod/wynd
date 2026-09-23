@@ -1,0 +1,7 @@
+wynd: 1
+name: research
+kind: agentic
+entrypoint: research:Research
+effects: []
+tools:
+  - { name: web_search, source: library, effects: [network], idempotent: true }
