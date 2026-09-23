@@ -1,4 +1,8 @@
-"""CLI state and the lazily built `Controller` (PLAN §9; `$DRAFTS/06 §9.1`). `get_controller` is a stub; CLI-M1."""
+"""CLI state and the lazily built `Controller` (PLAN §9; `$DRAFTS/06 §9.1`).
+
+Commands call `context.get_controller(ctx)` through this module, so tests can replace it with a controller over
+fake backends.
+"""
 
 from __future__ import annotations
 
@@ -19,5 +23,12 @@ class CliState:
 
 
 def get_controller(ctx: typer.Context) -> Controller:
-    """`Controller.open(state.workspace)` on first use, cached on the `CliState`."""
-    raise NotImplementedError("PLAN §9")
+    """`Controller.open(state.workspace)` on first use, cached on the `CliState` and closed with the root context.
+    `NotAWorkspace` (exit 3) when no `wynd.yaml` is found."""
+    from wynd.controller import Controller
+
+    state = ctx.ensure_object(CliState)
+    if state.controller is None:
+        state.controller = Controller.open(state.workspace)
+        ctx.find_root().call_on_close(state.controller.close)
+    return state.controller
