@@ -1,0 +1,7 @@
+kind: proto_step
+name: work
+instruction: Do the work.
+inputs: {}
+outputs: {}
+examples:
+  - inputs: {}

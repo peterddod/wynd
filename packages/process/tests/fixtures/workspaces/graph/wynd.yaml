@@ -1,0 +1,2 @@
+# Fixture workspace: process references — a 3-cycle, a self-reference and a diamond.
+process_roots: [processes]

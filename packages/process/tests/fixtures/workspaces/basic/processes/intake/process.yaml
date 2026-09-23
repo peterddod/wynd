@@ -1,0 +1,22 @@
+kind: process
+name: intake
+goal: Read a document and file it with the finance process.
+entry: read
+inputs:
+  path: path
+outputs:
+  summary: string
+steps:
+  read:    { use: ./steps/read }                  # compiled, fresh, lock interface
+  draft:   { use: ./steps/draft }                 # proto only, declared schemas
+  guess:   { use: ./steps/guess }                 # proto only, examples only
+  extract: { use: finance:extract/invoice }       # compiled root step, no proto, no interface snapshot
+  greet:   { use: shared:greet }                  # root proto only
+  file:    { use: process:finance/invoices }      # child process
+edges:
+  - from: read.done
+    to: draft
+    with: { text: steps.read.outputs.text }
+  - from: draft.done
+    to: $exit.done
+    with: { summary: steps.draft.outputs.summary }

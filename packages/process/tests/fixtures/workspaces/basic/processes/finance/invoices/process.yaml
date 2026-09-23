@@ -1,0 +1,13 @@
+kind: process
+name: invoices
+entry: check
+inputs:
+  text: string
+outputs:
+  ok: boolean
+steps:
+  check: { use: ./steps/check }
+edges:
+  - from: check.done
+    to: $exit.done
+    with: { ok: steps.check.outputs.ok }

@@ -1,0 +1,6 @@
+kind: process
+name: top
+entry: left
+steps:
+  left: { use: process:diamond/left }
+  right: { use: process:diamond/right }

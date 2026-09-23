@@ -1,0 +1,10 @@
+kind: proto_step
+name: draft
+instruction: Summarise the text in one sentence.
+inputs:
+  text: string
+outputs:
+  summary: string
+examples:
+  - inputs: { text: The invoice is due on Friday. }
+    outputs: { summary: Invoice due Friday. }

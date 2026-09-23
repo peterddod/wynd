@@ -1,0 +1,5 @@
+wynd: 1
+name: echo
+kind: deterministic
+entrypoint: echo:Echo
+effects: [network]

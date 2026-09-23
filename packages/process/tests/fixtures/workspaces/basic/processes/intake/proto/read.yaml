@@ -1,0 +1,10 @@
+kind: proto_step
+name: read
+instruction: Read the text of the document at path.
+inputs:
+  path: path
+outputs:
+  text: string
+examples:
+  - inputs: { path: docs/a.txt }
+    outputs: { text: hello }

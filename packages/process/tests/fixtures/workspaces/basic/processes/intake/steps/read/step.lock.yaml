@@ -1,0 +1,21 @@
+wynd: 1
+name: read
+kind: deterministic
+entrypoint: read:Read
+proto_hash: sha256:78c224499a261bd1f7377f9d366441f2575d9ba44e10ab968676059646acbb48
+effects: [filesystem]
+interface:
+  input:
+    type: object
+    properties:
+      path: { type: string, format: path }
+    required: [path]
+    additionalProperties: false
+  outputs:
+    done:
+      type: object
+      properties:
+        exit: { const: done }
+        text: { type: string }
+      required: [exit, text]
+      additionalProperties: false

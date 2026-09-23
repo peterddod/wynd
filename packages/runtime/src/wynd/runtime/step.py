@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from wynd.runtime.shell import ShellResult
     from wynd.spec.lockfiles import TraceStepKind
 
+_SHELL_FIELDS = ("stdout", "stderr", "returncode")
+
 
 class Step(ABC):
     Input: ClassVar[type[BaseModel]]
@@ -46,6 +48,12 @@ class AgenticStep(Step):
     tools: ClassVar[list[Callable[..., Any]]] = []
     mcp: ClassVar[list[McpServer]] = []
 
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        from wynd.runtime.agentic.checks import check_agentic_class
+
+        check_agentic_class(cls)
+
     def run(self, input: Any) -> Any: ...
 
 
@@ -55,10 +63,22 @@ class ShellStep(Step):
     exit_codes: ClassVar[dict[int | str, str]] = {0: "done", "*": "error"}
 
     def command(self, input: Any) -> list[str]:
-        raise NotImplementedError
+        raise NotImplementedError(f"{type(self).__name__} must define command(input) -> argv")
 
     def outputs(self, exit: str, result: ShellResult) -> BaseModel:
-        raise NotImplementedError("PLAN §5.2")
+        """Default: the exit's model filled from its fields named stdout/stderr/returncode. Override when the model
+        has other required fields (e.g. parse `result.stdout`)."""
+        from wynd.runtime.interface import interface_of
+
+        model = interface_of(type(self)).exit_model(exit)
+        fields = {name: info for name, info in model.model_fields.items() if name != "exit"}
+        unfilled = [name for name, info in fields.items() if name not in _SHELL_FIELDS and info.is_required()]
+        if unfilled:
+            raise NotImplementedError(
+                f"{type(self).__name__}.outputs() must be defined: exit '{exit}' has fields "
+                f"{', '.join(unfilled)} that are not stdout/stderr/returncode"
+            )
+        return model(**{name: getattr(result, name) for name in fields if name in _SHELL_FIELDS})
 
     def run(self, input: Any) -> Any:
         from wynd.runtime.shell import run_shell
@@ -72,8 +92,15 @@ class ProcessStep(Step):
     process_id: ClassVar[str]
 
     def run(self, input: Any) -> Any:
-        raise NotImplementedError("PLAN §5.2")
+        raise RuntimeError("ProcessStep nodes are executed by the executor, not called")
 
 
 def step_kind(cls: type[Step]) -> TraceStepKind:
-    raise NotImplementedError("PLAN §5.2")
+    """ProcessStep > ShellStep > AgenticStep > DeterministicStep; a bare Step subclass is "deterministic"."""
+    if issubclass(cls, ProcessStep):
+        return "process"
+    if issubclass(cls, ShellStep):
+        return "shell"
+    if issubclass(cls, AgenticStep):
+        return "agentic"
+    return "deterministic"
