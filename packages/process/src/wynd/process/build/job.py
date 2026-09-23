@@ -5,6 +5,9 @@ chooses the base, assigns edge venvs, resolves host-side, builds step wheels, wr
 `process.lock.yaml`, the Dockerfile and `image.ref` into the build context (`ctx.scratch/"ctx"` or
 `$WYND_BUILD_CONTEXT_DIR`). `run_build_job` = prepare -> `open_image_builder().build(...)` -> `finalize_build_job`
 (digest, optional push, `artefacts.put_build`, outcome artefacts).
+
+Job inputs (as sent by `JobService.submit_build`, `$DRAFTS/06 §5.8`): `{process, registry: <image registry name> | None,
+push: bool, platform?: str}`.
 """
 
 from __future__ import annotations

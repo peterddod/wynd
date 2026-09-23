@@ -1,0 +1,20 @@
+kind: process
+name: p2
+goal: Normalise a name and tag it.
+provider: fake
+entry: normalise
+inputs:
+  name: string
+outputs:
+  done:
+    tag: string
+steps:
+  normalise: { use: "shared:normalise" }
+  tag: { use: ./steps/tag }
+edges:
+  - from: normalise.done
+    to: tag
+    with: { name: steps.normalise.outputs.name }
+  - from: tag.done
+    to: $exit.done
+    with: { tag: steps.tag.outputs.tag }

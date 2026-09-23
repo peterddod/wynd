@@ -1,0 +1,33 @@
+kind: process
+name: p1
+goal: Upper-case a text, count its words and save it.
+provider: fake
+env:
+  vars:
+    RECORDS_DIR: Directory where the upper-cased text is saved.
+entry: upper
+inputs:
+  text: string
+outputs:
+  done:
+    words: integer
+    path: string
+  empty: {}
+examples:
+  - inputs: { text: hello world }
+    env: { RECORDS_DIR: "{tmp}/records" }
+    outputs: { words: 2 }
+  - inputs: { text: "   " }
+    exit: empty
+steps:
+  upper: { use: ./steps/upper }
+  count: { use: ./steps/count }
+edges:
+  - from: upper.done
+    to: count
+    with: { text: steps.upper.outputs.text, dest: env.RECORDS_DIR }
+  - from: upper.empty
+    to: $exit.empty
+  - from: count.done
+    to: $exit.done
+    with: { words: steps.count.outputs.words, path: steps.count.outputs.path }

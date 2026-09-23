@@ -3,11 +3,12 @@
 The web contract is `$DRAFTS/07 §12.2` as amended by PLAN §3.21. `Usage`, `JobUsage`, `JobKind`, `JobStatus`,
 `Integration` (= `IntegrationResult`), `ProcessError` and `EnvVar` are the single definitions owned by spec, runtime
 and process; they are re-exported here, never redefined. M3/M4 DTOs live in `wynd.controller.api.models_web`.
-Fields marked "controller addition" are not in the TS contract; they only extend it.
+Fields marked "controller addition" are not in the TS contract; they only extend it. The `from_*` constructors are
+the one place each DTO is built from its spec/process/runtime source.
 """
 
 from datetime import datetime
-from typing import Annotated, Any, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,6 +18,11 @@ from wynd.runtime.usage import Usage
 from wynd.spec.fragments import EnvVar
 from wynd.spec.lockfiles import TraceStepKind
 from wynd.spec.records import ProcessError
+
+if TYPE_CHECKING:
+    from wynd.process.validation import ValidationReport
+    from wynd.spec.env_manifest import EnvCheck, EnvManifest
+    from wynd.spec.errors import Diagnostic
 
 __all__ = [
     "DTO", "Loc", "StatusFlag", "StepPhase", "InterfaceSource", "TriggerKind", "ReleaseState", "RunTrigger",
@@ -121,12 +127,20 @@ class Issue(DTO):
     loc: Loc = []
     span: tuple[int, int] | None = None
 
+    @classmethod
+    def from_diagnostic(cls, d: "Diagnostic") -> "Issue":
+        return cls(severity=d.severity, code=d.code, message=d.message, file=d.file, loc=list(d.loc), span=d.span)
+
 
 class ValidationReportDTO(DTO):
     """Built from `wynd.process.ValidationReport` (amendment 13)."""
 
     ok: bool
     issues: list[Issue] = []
+
+    @classmethod
+    def from_report(cls, report: "ValidationReport") -> "ValidationReportDTO":
+        return cls(ok=report.ok, issues=[Issue.from_diagnostic(d) for d in report.diagnostics])
 
 
 class EnvCheckDTO(DTO):
@@ -136,6 +150,27 @@ class EnvCheckDTO(DTO):
     missing: list[str] = []
     unbound: list[str] = []
     issues: list[Issue] = []
+
+    @classmethod
+    def from_check(cls, manifest: "EnvManifest", check: "EnvCheck") -> "EnvCheckDTO":
+        """Names come from each finding's `loc`: `("vars", i)` is one var, `("groups", g)` every member of group g."""
+        missing: list[str] = []
+        unbound: list[str] = []
+        for d in check.diagnostics:
+            match d.loc:
+                case ("vars", int(index)):
+                    names = [manifest.vars[index].name]
+                case ("groups", str(group)):
+                    names = [var.name for var in manifest.vars if var.one_of == group]
+                case _:
+                    names = []
+            match d.code:
+                case "E-ENV-MISSING" | "E-ENV-ONE-OF":
+                    missing += names
+                case "W-ENV-ONE-OF":
+                    unbound += names
+        issues = [Issue.from_diagnostic(d) for d in check.diagnostics]
+        return cls(ok=check.ok, missing=missing, unbound=unbound, issues=issues)
 
 
 # --- status and listing -----------------------------------------------------------------------------------------------
@@ -346,6 +381,39 @@ class Run(DTO):
     finished_at: datetime | None = None
     duration_ms: float | None = None
     usage: Usage | None = None
+
+    @classmethod
+    def from_record(cls, record: dict[str, Any]) -> "Run":
+        """Project a stored `RunRecord` dict; `meta` carries `trigger`, `release_id` and `target` (PLAN §3.14)."""
+        meta = record.get("meta") or {}
+        target_meta = meta.get("target") or {}
+        release_id = meta.get("release_id")
+        match target_meta.get("kind") or record.get("mode") or "local":
+            case "release":
+                target: LocalTarget | ImageTarget | ReleaseTarget = ReleaseTarget(release_id=release_id or "")
+            case "image":
+                target = ImageTarget(commit=target_meta.get("commit") or record.get("ref"))
+            case _:
+                target = LocalTarget()
+        trigger = meta.get("trigger")
+        return cls(
+            id=record["id"],
+            process_id=record["process"],
+            commit=record.get("ref") or target_meta.get("commit"),
+            mode=record.get("mode") or ("local" if target.kind == "local" else "image"),
+            target=target,
+            release_id=release_id,
+            trigger=trigger if trigger in ("manual", "schedule", "webhook", "api") else "api",
+            status=record["status"],
+            inputs=record.get("inputs") or {},
+            exit=record.get("exit"),
+            outputs=record.get("outputs"),
+            error=record.get("error"),
+            started_at=record.get("started_at"),
+            finished_at=record.get("finished_at"),
+            duration_ms=record.get("duration_ms"),
+            usage=record.get("usage"),
+        )
 
 
 # --- builds -----------------------------------------------------------------------------------------------------------

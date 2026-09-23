@@ -1,0 +1,42 @@
+# Hand-written step (controller test fixture).
+wynd: 1
+name: normalise
+kind: deterministic
+entrypoint: normalise:Normalise
+proto_hash: sha256:ef6d3a8b7ebfaaa609bf3bce616c57b6f5c308301e505f8a57f826c5e670eefa
+builtin_tools: []
+effects: []
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    properties:
+      name:
+        title: Name
+        type: string
+    required:
+    - name
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+      - name
+      title: Output
+      type: object

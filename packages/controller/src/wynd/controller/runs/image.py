@@ -32,6 +32,11 @@ def run_image(
     on_event: Callable[[dict], None] | None = None,
     trigger: RunTrigger = "api",
     run_api_client: Callable[[str], RunApiClient] = RunApiClient,
+    run_id: str | None = None,
 ) -> Run:
-    """Run the build of `pid` at `commit` (default: the process HEAD) in a warm or ephemeral container."""
+    """Run the build of `pid` at `commit` (default: the process HEAD) in a warm or ephemeral container.
+
+    `run_id` (default `new_id("run")`) is passed to `RunApiClient.submit(inputs, run_id=run_id, ...)`; `RunService.start`
+    picks it up front so the id it returns is the id of the run.
+    """
     raise NotImplementedError("PLAN §8.1")

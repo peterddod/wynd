@@ -1,0 +1,51 @@
+# Hand-written step (controller test fixture).
+wynd: 1
+name: upper
+kind: deterministic
+entrypoint: upper:Upper
+proto_hash: sha256:ebd42e0e91419b4bc0c77bf7955e14c8f35e11f1d4bb2a84408573afa0c19dc7
+builtin_tools: []
+effects: []
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    properties:
+      text:
+        title: Text
+        type: string
+    required:
+    - text
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        text:
+          title: Text
+          type: string
+      required:
+      - text
+      title: Done
+      type: object
+    empty:
+      properties:
+        exit:
+          const: empty
+          default: empty
+          title: Exit
+          type: string
+      title: Empty
+      type: object

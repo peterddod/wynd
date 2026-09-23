@@ -1,7 +1,8 @@
-"""Job handler table (PLAN §3.18). `resolve_handler` is a stub; CTL-JOBS."""
+"""Job handler table (PLAN §3.18)."""
 
 from __future__ import annotations
 
+import importlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -26,4 +27,10 @@ PHASE_HANDLERS: dict[str, dict[str, str]] = {
 
 def resolve_handler(spec: str) -> JobHandler:
     """`"module:function"` -> the handler, imported on call (M1 works before the compiler exists)."""
-    raise NotImplementedError("PLAN §3.18")
+    module, sep, name = spec.partition(":")
+    if not sep or not module or not name:
+        raise ValueError(f"job handler {spec!r} is not of the form 'module:function'")
+    handler = getattr(importlib.import_module(module), name, None)
+    if not callable(handler):
+        raise ValueError(f"job handler {spec!r}: module {module!r} has no function {name!r}")
+    return handler

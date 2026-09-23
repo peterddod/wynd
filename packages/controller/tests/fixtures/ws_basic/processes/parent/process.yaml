@@ -1,0 +1,19 @@
+kind: process
+name: parent
+goal: Run p1 as a child process.
+provider: fake
+entry: child
+inputs:
+  text: string
+outputs:
+  done:
+    words: integer
+  empty: {}
+steps:
+  child: { use: "process:p1" }
+edges:
+  - from: child.done
+    to: $exit.done
+    with: { words: steps.child.outputs.words }
+  - from: child.empty
+    to: $exit.empty

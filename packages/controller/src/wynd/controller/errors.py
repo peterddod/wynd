@@ -3,9 +3,11 @@
 Every class carries `code`, `http` and `exit` (PLAN §3.22), with PLAN §8.1's `ValidationFailed` (422/1, mapped from
 `wynd.process.errors.ValidationFailed`) and `EnvMissing` (`env_missing`, 412/3). The HTTP body is
 `{"error": {"code", "message", "details", "hint"}}`; the CLI prints `error: <message>` (and `hint: <hint>`) to stderr
-and exits with `exit`.
+and exits with `exit`. `translated()` re-raises the process/runtime errors a service can meet as these classes.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any, ClassVar
 
 
@@ -122,3 +124,30 @@ class Unavailable(WyndError):
     code = "unavailable"
     http = 503
     exit = 3
+
+
+@contextmanager
+def translated() -> Iterator[None]:
+    """Re-raise the `wynd.process` / `wynd.runtime` errors a service call can meet as controller errors."""
+    from wynd.controller.models import Issue, ValidationReportDTO
+    from wynd.process import errors as proc
+    from wynd.runtime.errors import InvalidProcessInputs
+
+    try:
+        yield
+    except proc.ProcessNotFound as err:
+        raise NotFound(str(err)) from err
+    except proc.LoadError as err:
+        report = ValidationReportDTO(ok=False, issues=[Issue.from_diagnostic(d) for d in err.diagnostics])
+        raise ValidationFailed(str(err), details=report.model_dump(mode="json")) from err
+    except proc.ValidationFailed as err:
+        report = ValidationReportDTO.from_report(err.report)
+        lines = [f"  {issue.code}: {issue.message}" for issue in report.issues if issue.severity == "error"]
+        raise ValidationFailed("\n".join([str(err), *lines]), details=report.model_dump(mode="json")) from err
+    except proc.DesignPhase as err:
+        hint = "compile the process first (wynd compile)"
+        raise Conflict(str(err), details={"steps": err.step_ids}, hint=hint) from err
+    except proc.ToolMissing as err:
+        raise Unavailable(str(err)) from err
+    except InvalidProcessInputs as err:
+        raise Invalid(str(err), details={"errors": err.errors}) from err
