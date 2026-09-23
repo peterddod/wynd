@@ -1,0 +1,8 @@
+Wynd is open source. Licences are per directory:
+
+  packages/spec, packages/runtime               Apache License 2.0            (LICENSES/Apache-2.0.txt)
+  everything else, including packages/process,
+  compiler, controller, cli, web, kube,
+  examples, docs, deploy and CI configuration   GNU AGPL v3.0 or later        (LICENSES/AGPL-3.0-or-later.txt)
+
+Each package directory carries its own LICENSE file, which is what its distribution ships.

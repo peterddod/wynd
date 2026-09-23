@@ -1,0 +1,16 @@
+[project]
+name = "wynd-spec"
+version = "0.1.0"
+description = "Wynd document formats, type and expression languages, runtime records and hashing"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = ["pydantic>=2.7", "pyyaml>=6", "lark>=1.2"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wynd"]

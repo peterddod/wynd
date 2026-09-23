@@ -1,0 +1,24 @@
+[project]
+name = "wynd-workspace"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = ["wynd-spec", "wynd-runtime"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+wynd-spec = { workspace = true }
+wynd-runtime = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+exclude = ["packages/web"]
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+testpaths = ["packages"]
+markers = ["live: needs real LLM access (WYND_LIVE=1)", "docker: needs Docker (WYND_DOCKER=1)"]

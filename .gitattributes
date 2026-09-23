@@ -1,0 +1,4 @@
+# Recorded model calls are tracked with git-lfs (spec 6.5)
+**/cassettes/** filter=lfs diff=lfs merge=lfs -text
+# Sample fixtures
+*.pdf binary
