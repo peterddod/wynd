@@ -7,14 +7,18 @@ Newline-delimited JSON-RPC over the worker's claimed stdio. `ExecPolicy` and `Ca
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
 from wynd.runtime.policy import CassetteConfig, ExecPolicy
 from wynd.runtime.usage import ModelInfo, Usage
+from wynd.spec.hashing import interface_hash
 from wynd.spec.lockfiles import StepKind
 from wynd.spec.records import Summary
+
+if TYPE_CHECKING:
+    from wynd.spec.plan import PlanStep
 
 PROTOCOL_VERSION = 1
 
@@ -71,3 +75,17 @@ class RunStepResult(BaseModel):
     usage: Usage | None = None
     model: ModelInfo | None = None
     replayed: bool = False
+
+
+def init_step(step: PlanStep) -> InitStep:
+    """The `init` entry of one plan step; the snapshot fields come from its lock (PLAN §3.6)."""
+    lock = step.lock
+    return InitStep(
+        id=step.id,
+        entrypoint=step.entrypoint,
+        package_dir=step.package_dir,
+        kind=lock.kind,
+        interface_hash=interface_hash(lock.interface) if lock.interface is not None else None,
+        context=list(lock.context),
+        exit_codes={str(code): exit for code, exit in lock.shell.exit_codes.items()} if lock.shell else None,
+    )

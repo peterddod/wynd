@@ -892,8 +892,8 @@ class TestResult(BaseModel):
 `RunRequest.metadata`; reserved keys, always sent by the controller: `trigger ∈ {"api", "manual", "schedule",
 "webhook"}`, `release_id: str | None`, `target: {"kind": "local"|"image"|"release", "commit"?: str}`; other keys pass
 through. (`$DRAFTS/03 §13`'s example `{"trigger": "cron", "release": …}` is corrected to `{"trigger": "schedule",
-"release_id": …}`.) `workspace_bytes` is the size of the run workspace at close (0 when deleted after measuring),
-`trace_bytes` the size of the trace file.
+"release_id": …}`.) `workspace_bytes` is the size of the run workspace at close, measured just before it is kept or
+deleted (so a deleted workspace still records its measured size; it is not 0), `trace_bytes` the size of the trace file.
 `JobRecord` (kind `"job"`) is defined in `wynd.process.jobs` (§3.18) and stored through the same `RunRegistry`.
 On-disk: `$WYND_DATA_DIR/registry/records/<id>.json`, `…/registry/tests/<commit>/<sha256(key)[:32]>.json`,
 `$WYND_DATA_DIR/traces/<run_id>.jsonl`, `$WYND_DATA_DIR/workspaces/<run_id>/`, `$WYND_HOME/{mcp,providers,registries}.json`
@@ -1637,7 +1637,10 @@ Adopt `$DRAFTS/08 §4.4–§4.5` over the M1 seam of §5.4 (`EdgeVerdict`, `Edge
 `wynd.runtime.executor.edges` and re-exported; EDGE-RT never redefines them). EDGE-RT adds: `EDGE_VERDICT_SCHEMA`,
 `VERIFIER_INSTRUCTION` (verbatim), `run_edge_check(call, cassette, workspace, on_event) -> EdgeCheckResult`
 (worker-side via `complete_structured`, no tools/MCP, `unit=f"edge:{branch_key}"`; raises `EdgeCheckError`),
-`handle_edge_check(params: dict) -> dict` (worker RPC handler; errors → JSON-RPC `-32001` with `data.cause`), and
+`handle_edge_check(params: dict) -> dict` (worker RPC handler; errors → JSON-RPC `-32001` with `data.cause`; it has no
+emit argument: it sends its `model.call` notifications with `wynd.runtime.worker.server.notify(event)`, which delivers
+only while a request is in flight, and reports failure by raising `wynd.runtime.executor.edges.EdgeCheckError(cause,
+message)`, which the worker server (RT-WORKER) turns into `-32001` with `data = {"cause", "message"}`), and
 `WorkerEdgeChecker(pool: WorkerPool, plan: RunPlan)` implementing `EdgeChecker` (dispatches
 `pool.call(plan.edge_venvs[f"{pid}:{branch_key}"], "edge.check", …, on_event=on_event, timeout=timeout_s)`, maps
 `-32001` to `EdgeCheckError` and a timeout to cause `timeout`; it emits nothing). The provider of a check is

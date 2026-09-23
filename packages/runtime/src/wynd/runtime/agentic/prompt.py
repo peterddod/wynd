@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import inspect
+import json
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
@@ -25,13 +27,33 @@ RETRY_NO_OUTPUT = "You replied without structured output. Reply with the step's 
 RETRY_TRUNCATED = ("Your previous reply was cut off at the output token limit. "
                    "Reply again, more concisely, with the step's structured output.")
 
+INPUT_REPR_LIMIT = 80
+
 
 def render_prompt(
     instruction: str, context: Mapping[str, Any], input: Mapping[str, Any], *, raw_prompt: str | None = None
 ) -> tuple[str, str]:
-    """-> (system, user)."""
-    raise NotImplementedError("PLAN §5.5")
+    """-> (system, user). Deterministic: JSON with sort_keys, indent=2, ensure_ascii=False, default=str.
+
+    Raw mode (`raw_prompt` set: the compiler, the chat) returns `instruction` and `raw_prompt` verbatim."""
+    if raw_prompt is not None:
+        return instruction, raw_prompt
+    system = SYSTEM_PREAMBLE + inspect.cleandoc(instruction)
+    parts = []
+    if context:
+        parts.append("# Context\n```json\n" + _json(context) + "\n```")
+    parts.append("# Input\n```json\n" + _json(input) + "\n```")
+    return system, "\n\n".join(parts)
 
 
 def format_validation_errors(err: ValidationError, limit: int = 20) -> str:
-    raise NotImplementedError("PLAN §5.5")
+    """One line per error, at most `limit`: `- output.<loc joined by '.'>: <msg> (got <repr(input)[:80]>)`."""
+    lines = []
+    for error in err.errors()[:limit]:
+        where = ".".join(["output", *(str(part) for part in error["loc"])])
+        lines.append(f"- {where}: {error['msg']} (got {repr(error.get('input'))[:INPUT_REPR_LIMIT]})")
+    return "\n".join(lines)
+
+
+def _json(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False, default=str)
