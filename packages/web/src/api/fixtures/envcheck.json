@@ -1,0 +1,32 @@
+{
+  "ok": false,
+  "missing": [
+    "ESCALATIONS_DIR",
+    "REVIEW_DIR"
+  ],
+  "unbound": [],
+  "issues": [
+    {
+      "severity": "error",
+      "code": "E-ENV-MISSING",
+      "message": "required env var ESCALATIONS_DIR is not set (used by edge:process_supplier_invoice:validate.done[2].queue_dir)",
+      "file": null,
+      "loc": [
+        "vars",
+        2
+      ],
+      "span": null
+    },
+    {
+      "severity": "error",
+      "code": "E-ENV-MISSING",
+      "message": "required env var REVIEW_DIR is not set (used by edge:process_supplier_invoice:validate.done[0].dest)",
+      "file": null,
+      "loc": [
+        "vars",
+        4
+      ],
+      "span": null
+    }
+  ]
+}

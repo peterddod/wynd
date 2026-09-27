@@ -1,0 +1,42 @@
+retry: 2000
+
+id: 15
+event: item
+data: {"item":{"id":"it_9","seq":9,"type":"user","created_at":"2026-09-27T09:20:00Z","text":"Only email finance for totals over 10,000","acting_on":"process_supplier_invoice"}}
+
+id: 16
+event: turn
+data: {"turn_id":"turn_3","status":"running","acting_on":"process_supplier_invoice","edited":[],"error":null}
+
+id: 17
+event: item
+data: {"item":{"id":"it_10","seq":10,"type":"assistant","created_at":"2026-09-27T09:20:01Z","turn_id":"turn_3","text":"","status":"streaming","error":null,"usage":null}}
+
+id: 18
+event: delta
+data: {"item_id":"it_10","text":"I'll add a condition to the "}
+
+id: 19
+event: delta
+data: {"item_id":"it_10","text":"`escalate.done` edge."}
+
+id: 20
+event: item
+data: {"item":{"id":"it_11","seq":11,"type":"tool","created_at":"2026-09-27T09:20:04Z","turn_id":"turn_3","tool":"edit_design","args":{"op":"set_when","edge":"escalate.done","branch":0,"when":"steps.escalate.outputs.total > 10000"},"write":true,"acting_on":"process_supplier_invoice","status":"running","summary":null,"duration_ms":null}}
+
+id: 21
+event: item
+data: {"item":{"id":"it_11","seq":11,"type":"tool","created_at":"2026-09-27T09:20:04Z","turn_id":"turn_3","tool":"edit_design","args":{"op":"set_when","edge":"escalate.done","branch":0,"when":"steps.escalate.outputs.total > 10000"},"write":true,"acting_on":"process_supplier_invoice","status":"ok","summary":"escalate.done[0] now has when: steps.escalate.outputs.total > 10000","duration_ms":35.0}}
+
+id: 22
+event: item
+data: {"item":{"id":"it_12","seq":12,"type":"commit","created_at":"2026-09-27T09:20:09Z","turn_id":"turn_3","process_id":"process_supplier_invoice","sha":"e5f60718293a4b5c6d7e8f9012345678a1b2c3d4","message":"design(process_supplier_invoice): only notify finance over 10,000"}}
+
+id: 23
+event: item
+data: {"item":{"id":"it_10","seq":10,"type":"assistant","created_at":"2026-09-27T09:20:01Z","turn_id":"turn_3","text":"I'll add a condition to the `escalate.done` edge.","status":"done","error":null,"usage":{"input_tokens":10440,"output_tokens":380,"cache_read_tokens":0,"cache_write_tokens":0,"cost_usd":0.037,"latency_ms":8200.0,"calls":1}}}
+
+id: 24
+event: turn
+data: {"turn_id":"turn_3","status":"done","acting_on":"process_supplier_invoice","edited":["process_supplier_invoice"],"error":null}
+

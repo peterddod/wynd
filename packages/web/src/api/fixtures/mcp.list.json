@@ -1,0 +1,34 @@
+[
+  {
+    "name": "github",
+    "transport": "http",
+    "url": "https://api.githubcopilot.com/mcp/",
+    "headers": {
+      "Authorization": "Bearer ${env:GITHUB_TOKEN}"
+    },
+    "command": null,
+    "env": {},
+    "auth_env": [
+      "GITHUB_TOKEN"
+    ],
+    "timeout_s": 30.0,
+    "description": "GitHub issues and pull requests",
+    "oauth": null
+  },
+  {
+    "name": "files",
+    "transport": "stdio",
+    "url": null,
+    "headers": {},
+    "command": [
+      "uvx",
+      "mcp-server-filesystem",
+      "/data/inbox"
+    ],
+    "env": {},
+    "auth_env": [],
+    "timeout_s": 30.0,
+    "description": "",
+    "oauth": null
+  }
+]

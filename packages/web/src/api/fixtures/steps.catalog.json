@@ -1,0 +1,11 @@
+[
+  {
+    "use": "shared:notify/email_finance",
+    "root": "shared",
+    "path": "notify/email_finance",
+    "kind": null,
+    "phase": "design",
+    "instruction": "Email the finance team a short summary of an escalated invoice.",
+    "used_by": []
+  }
+]

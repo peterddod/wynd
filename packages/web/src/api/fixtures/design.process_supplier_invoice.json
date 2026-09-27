@@ -1,0 +1,2009 @@
+{
+  "process_id": "process_supplier_invoice",
+  "head": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+  "process_file": {
+    "path": "processes/process_supplier_invoice/process.yaml",
+    "revision": "sha256:5e01935ada18dd091025d8a9bbb394574be770a1ad808a8eb0d56349995052bf",
+    "doc": {
+      "kind": "process",
+      "name": "process_supplier_invoice",
+      "goal": "Turn a supplier invoice PDF into a validated record in the records store.",
+      "provider": "claude-code",
+      "env": {
+        "base": "debian-slim-python",
+        "vars": {
+          "RECORDS_DIR": "Directory where validated invoice records are written as JSON.",
+          "REVIEW_DIR": "Directory where validated records with a total over 10,000 are written for approval instead.",
+          "ESCALATIONS_DIR": "Directory where escalation tickets for a human reviewer are written."
+        }
+      },
+      "entry": "read",
+      "inputs": {
+        "pdf_path": "path"
+      },
+      "outputs": {
+        "done": {
+          "record": "object"
+        },
+        "not_an_invoice": {},
+        "needs_review": {}
+      },
+      "examples": [
+        {
+          "inputs": {
+            "pdf_path": "examples/acme_inv_1042.pdf"
+          },
+          "env": {
+            "RECORDS_DIR": "{tmp}/records",
+            "REVIEW_DIR": "{tmp}/review",
+            "ESCALATIONS_DIR": "{tmp}/escalations"
+          },
+          "outputs": {
+            "record": {
+              "key": "acme-supplies-ltd__INV-1042",
+              "supplier": "ACME Supplies Ltd",
+              "invoice_number": "INV-1042",
+              "total": 1200.5,
+              "currency": "GBP",
+              "due_date": "2026-10-01"
+            }
+          },
+          "exit": "done"
+        },
+        {
+          "inputs": {
+            "pdf_path": "examples/globex_inv_77810.pdf"
+          },
+          "env": {
+            "RECORDS_DIR": "{tmp}/records",
+            "REVIEW_DIR": "{tmp}/review",
+            "ESCALATIONS_DIR": "{tmp}/escalations"
+          },
+          "outputs": {
+            "record": {
+              "key": "globex-corporation__GX-77810",
+              "supplier": "Globex Corporation",
+              "invoice_number": "GX-77810",
+              "total": 14250.0,
+              "currency": "USD",
+              "due_date": "2026-11-15"
+            }
+          },
+          "exit": "done"
+        },
+        {
+          "inputs": {
+            "pdf_path": "examples/initech_inv_5521.pdf"
+          },
+          "env": {
+            "RECORDS_DIR": "{tmp}/records",
+            "REVIEW_DIR": "{tmp}/review",
+            "ESCALATIONS_DIR": "{tmp}/escalations"
+          },
+          "outputs": {
+            "record": {
+              "key": "initech-canada-inc__IC-5521",
+              "supplier": "Initech Canada Inc.",
+              "invoice_number": "IC-5521",
+              "total": 980.0,
+              "currency": "CAD",
+              "due_date": "2026-10-20"
+            }
+          },
+          "exit": "done"
+        },
+        {
+          "inputs": {
+            "pdf_path": "examples/shipping_notice.pdf"
+          },
+          "env": {
+            "RECORDS_DIR": "{tmp}/records",
+            "REVIEW_DIR": "{tmp}/review",
+            "ESCALATIONS_DIR": "{tmp}/escalations"
+          },
+          "exit": "not_an_invoice"
+        },
+        {
+          "inputs": {
+            "pdf_path": "examples/hooli_credit_note_311.pdf"
+          },
+          "env": {
+            "RECORDS_DIR": "{tmp}/records",
+            "REVIEW_DIR": "{tmp}/review",
+            "ESCALATIONS_DIR": "{tmp}/escalations"
+          },
+          "exit": "needs_review"
+        }
+      ],
+      "steps": {
+        "read": {
+          "use": "./steps/read_pdf"
+        },
+        "extract": {
+          "use": "./steps/extract_invoice_fields"
+        },
+        "validate": {
+          "use": "./steps/validate_fields"
+        },
+        "fix": {
+          "use": "./steps/fix_fields"
+        },
+        "save": {
+          "use": "./steps/save_record"
+        },
+        "escalate": {
+          "use": "./steps/escalate_to_human"
+        }
+      },
+      "edges": [
+        {
+          "from": "read.done",
+          "to": "extract",
+          "with": {
+            "invoice_text": "steps.read.outputs.text"
+          }
+        },
+        {
+          "from": "extract.done",
+          "to": "validate",
+          "with": {
+            "fields": "steps.extract.outputs"
+          }
+        },
+        {
+          "from": "extract.not_an_invoice",
+          "to": "$exit.not_an_invoice"
+        },
+        {
+          "from": "validate.done",
+          "to": [
+            {
+              "step": "save",
+              "when": "steps.validate.outputs.valid",
+              "with": {
+                "record": "steps.validate.outputs.record",
+                "dest": "if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR else env.RECORDS_DIR"
+              }
+            },
+            {
+              "step": "fix",
+              "when": "steps.validate.outputs.fixable and steps.fix.runs < 3",
+              "with": {
+                "invoice_text": "steps.read.outputs.text",
+                "fields": "steps.validate.outputs.fields",
+                "errors": "steps.validate.outputs.errors"
+              }
+            },
+            {
+              "step": "escalate",
+              "with": {
+                "fields": "steps.validate.outputs.fields",
+                "errors": "steps.validate.outputs.errors",
+                "queue_dir": "env.ESCALATIONS_DIR",
+                "run_id": "run.id"
+              }
+            }
+          ]
+        },
+        {
+          "from": "fix.done",
+          "to": "validate",
+          "with": {
+            "fields": "steps.fix.outputs"
+          }
+        },
+        {
+          "from": "save.done",
+          "to": "$exit.done",
+          "with": {
+            "record": "steps.save.outputs.record"
+          }
+        },
+        {
+          "from": "escalate.done",
+          "to": "$exit.needs_review"
+        }
+      ]
+    },
+    "yaml": "kind: process\nname: process_supplier_invoice\ngoal: Turn a supplier invoice PDF into a validated record in the records store.\nprovider: claude-code                 # default provider; tiers map via `wynd provider`\nenv:\n  base: debian-slim-python\n  vars:\n    RECORDS_DIR: Directory where validated invoice records are written as JSON.\n    REVIEW_DIR: Directory where validated records with a total over 10,000 are written for approval instead.\n    ESCALATIONS_DIR: Directory where escalation tickets for a human reviewer are written.\nentry: read                           # read.Input declares pdf_path\ninputs:\n  pdf_path: path\noutputs:\n  done:\n    record: object\n  not_an_invoice: {}\n  needs_review: {}\nexamples:\n  - inputs: { pdf_path: examples/acme_inv_1042.pdf }\n    env: &dirs { RECORDS_DIR: \"{tmp}/records\", REVIEW_DIR: \"{tmp}/review\", ESCALATIONS_DIR: \"{tmp}/escalations\" }\n    outputs:\n      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042,\n                total: 1200.5, currency: GBP, due_date: 2026-10-01 }\n    exit: done\n  - inputs: { pdf_path: examples/globex_inv_77810.pdf }          # > 10,000: saved to REVIEW_DIR\n    env: *dirs\n    outputs:\n      record: { key: globex-corporation__GX-77810, supplier: Globex Corporation, invoice_number: GX-77810,\n                total: 14250.0, currency: USD, due_date: 2026-11-15 }\n    exit: done\n  - inputs: { pdf_path: examples/initech_inv_5521.pdf }          # \"$\" -> validate fixable -> fix -> CAD\n    env: *dirs\n    outputs:\n      record: { key: initech-canada-inc__IC-5521, supplier: Initech Canada Inc., invoice_number: IC-5521,\n                total: 980.0, currency: CAD, due_date: 2026-10-20 }\n    exit: done\n  - inputs: { pdf_path: examples/shipping_notice.pdf }\n    env: *dirs\n    exit: not_an_invoice\n  - inputs: { pdf_path: examples/hooli_credit_note_311.pdf }     # negative total: not fixable -> escalate\n    env: *dirs\n    exit: needs_review\nsteps:\n  read:     { use: ./steps/read_pdf }\n  extract:  { use: ./steps/extract_invoice_fields }\n  validate: { use: ./steps/validate_fields }\n  fix:      { use: ./steps/fix_fields }\n  save:     { use: ./steps/save_record }\n  escalate: { use: ./steps/escalate_to_human }\nedges:\n  - from: read.done\n    to: extract\n    with: { invoice_text: steps.read.outputs.text }\n  - from: extract.done\n    to: validate\n    with: { fields: steps.extract.outputs }\n  - from: extract.not_an_invoice\n    to: $exit.not_an_invoice\n  # Branches evaluated top to bottom; first taken wins; the first branch with no when is the else.\n  - from: validate.done\n    to:\n      - step: save\n        when: steps.validate.outputs.valid\n        with:\n          record: steps.validate.outputs.record\n          dest: if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR\n                else env.RECORDS_DIR\n      - step: fix\n        when: steps.validate.outputs.fixable and steps.fix.runs < 3\n        with:\n          invoice_text: steps.read.outputs.text\n          fields: steps.validate.outputs.fields                    # the fields just validated: extract's or fix's\n          errors: steps.validate.outputs.errors\n      - step: escalate                                             # else: not fixable, or already fixed 3 times\n        with:\n          fields: steps.validate.outputs.fields\n          errors: steps.validate.outputs.errors\n          queue_dir: env.ESCALATIONS_DIR\n          run_id: run.id\n  - from: fix.done\n    to: validate\n    with: { fields: steps.fix.outputs }\n  - from: save.done\n    to: $exit.done\n    with: { record: steps.save.outputs.record }\n  - from: escalate.done\n    to: $exit.needs_review\n",
+    "parse_error": null
+  },
+  "protos": {
+    "processes/process_supplier_invoice/proto/escalate_to_human.yaml": {
+      "path": "processes/process_supplier_invoice/proto/escalate_to_human.yaml",
+      "revision": "sha256:9be77afb563054f0ac55a6b3f5a32b22a6d13e465c8f8de427e5f0dace350f62",
+      "doc": {
+        "kind": "proto_step",
+        "name": "escalate_to_human",
+        "instruction": "Write an escalation ticket for a human reviewer into the queue directory, creating it if needed.\nName it \"<run_id>.json\" with every character outside A-Z, a-z, 0-9, \".\", \"_\" and \"-\" replaced by \"_\".\nThe ticket is a JSON object with run_id, fields, errors, and reasons: the error messages, or when\nthere are no errors the single reason \"routed to review by the process; see `wynd trace <run_id>`\".\nWrite it with sorted keys, 2-space indent and a trailing newline, atomically. Return the ticket path.\n",
+        "inputs": {
+          "fields": {
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          },
+          "errors": [
+            {
+              "field": "string",
+              "code": "string",
+              "message": "string",
+              "fixable": "boolean"
+            }
+          ],
+          "queue_dir": "path",
+          "run_id": "string"
+        },
+        "outputs": {
+          "ticket_path": "path"
+        },
+        "examples": [
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "GBP",
+                "due_date": "2026-10-18"
+              },
+              "errors": [
+                {
+                  "field": "total",
+                  "code": "non_positive_total",
+                  "message": "total -250.00 must be greater than zero",
+                  "fixable": false
+                }
+              ],
+              "queue_dir": "{tmp}/escalations",
+              "run_id": "run-test-1"
+            },
+            "outputs": {
+              "ticket_path": "{tmp}/escalations/run-test-1.json"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "Umbrella Corporation",
+                "invoice_number": "PF-88",
+                "total": 3400.0,
+                "currency": "GBP",
+                "due_date": "2026-10-10"
+              },
+              "errors": [],
+              "queue_dir": "{tmp}/queue",
+              "run_id": "run-test-2"
+            },
+            "outputs": {
+              "ticket_path": "{tmp}/queue/run-test-2.json"
+            },
+            "exit": "done"
+          }
+        ],
+        "env": {
+          "deps": []
+        }
+      },
+      "yaml": "kind: proto_step\nname: escalate_to_human\ninstruction: |\n  Write an escalation ticket for a human reviewer into the queue directory, creating it if needed.\n  Name it \"<run_id>.json\" with every character outside A-Z, a-z, 0-9, \".\", \"_\" and \"-\" replaced by \"_\".\n  The ticket is a JSON object with run_id, fields, errors, and reasons: the error messages, or when\n  there are no errors the single reason \"routed to review by the process; see `wynd trace <run_id>`\".\n  Write it with sorted keys, 2-space indent and a trailing newline, atomically. Return the ticket path.\ninputs:\n  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\n  errors: [ { field: string, code: string, message: string, fixable: boolean } ]\n  queue_dir: path\n  run_id: string\noutputs:\n  ticket_path: path\nexamples:\n  - inputs:\n      fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 }\n      errors: [ { field: total, code: non_positive_total, message: \"total -250.00 must be greater than zero\", fixable: false } ]\n      queue_dir: \"{tmp}/escalations\"\n      run_id: run-test-1\n    outputs: { ticket_path: \"{tmp}/escalations/run-test-1.json\" }\n    exit: done\n  - inputs:\n      fields: { supplier: Umbrella Corporation, invoice_number: PF-88, total: 3400.0, currency: GBP, due_date: 2026-10-10 }\n      errors: []\n      queue_dir: \"{tmp}/queue\"\n      run_id: run-test-2\n    outputs: { ticket_path: \"{tmp}/queue/run-test-2.json\" }\n    exit: done\nenv:\n  deps: []\n"
+    },
+    "processes/process_supplier_invoice/proto/extract_invoice_fields.yaml": {
+      "path": "processes/process_supplier_invoice/proto/extract_invoice_fields.yaml",
+      "revision": "sha256:de38eda46fa32bac79f155df2d4ba6d0900f594c6c75b978f46a9cdb8f0eb417",
+      "doc": {
+        "kind": "proto_step",
+        "name": "extract_invoice_fields",
+        "instruction": "Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.\n\nTreat any document that states an amount to pay or to credit as an invoice, including pro forma\ninvoices and credit notes; use not_an_invoice only for documents with no amount due at all, such\nas shipping notices, marketing or letters.\n\nsupplier: the supplier's name exactly as printed at the top of the document.\ninvoice_number: the document's own number exactly as printed (invoice, credit note or pro forma\nnumber), not a customer, order or tax registration number.\ntotal: the final amount due as a number without currency symbols or thousands separators;\nnegative for credits.\ncurrency: the ISO 4217 code if the document states one or the symbol is unambiguous (£ is GBP,\n€ is EUR); otherwise the symbol exactly as printed, for example \"$\".\ndue_date: the payment due date (or the refund-by or valid-until date if there is no due date).\n",
+        "inputs": {
+          "invoice_text": "string"
+        },
+        "outputs": {
+          "done": {
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          },
+          "not_an_invoice": {}
+        },
+        "exits": [
+          "done",
+          "not_an_invoice"
+        ],
+        "examples": [
+          {
+            "inputs": {
+              "invoice_text": "ACME Supplies Ltd\n12 Foundry Lane, Sheffield S1 2AB, United Kingdom\nVAT registration: GB123456789\nINVOICE\nInvoice number: INV-1042\nInvoice date: 1 September 2026\nDue date: 1 October 2026\nBill to: Wynd Test Ltd, 1 Example Street, London EC1A 1AA\nSteel brackets (box of 100)      4 x £150.00      £600.00\nGalvanised bolts M8 (box of 500)      2 x £200.25      £400.50\nDelivery      £200.00\nTotal due: £1,200.50\nPayment terms: 30 days. Pay by bank transfer to sort code 00-00-00, account 12345678."
+            },
+            "outputs": {
+              "supplier": "ACME Supplies Ltd",
+              "invoice_number": "INV-1042",
+              "total": 1200.5,
+              "currency": "GBP",
+              "due_date": "2026-10-01"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "invoice_text": "Globex Corporation\n500 Market Street, Springfield, OR 97477, USA\nINVOICE\nInvoice No: GX-77810\nInvoice date: 15 September 2026\nPayment due: 15 November 2026\nBill to: Wynd Test Ltd\nConsulting services, September 2026: 95 hours at USD 150.00      USD 14,250.00\nAmount due (USD): 14,250.00"
+            },
+            "outputs": {
+              "supplier": "Globex Corporation",
+              "invoice_number": "GX-77810",
+              "total": 14250.0,
+              "currency": "USD",
+              "due_date": "2026-11-15"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "invoice_text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00"
+            },
+            "outputs": {
+              "supplier": "Initech Canada Inc.",
+              "invoice_number": "IC-5521",
+              "total": 980.0,
+              "currency": "$",
+              "due_date": "2026-10-20"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "invoice_text": "Hooli Ltd\n1 Silicon Way, Cambridge CB1 1AA, United Kingdom\nCREDIT NOTE\nCredit note number: CN-311\nRelates to invoice: HL-2291\nDate: 18 September 2026\nRefund due by: 18 October 2026\nReturned: 2 x Nucleus compression licence      -£250.00\nTotal: -£250.00"
+            },
+            "outputs": {
+              "supplier": "Hooli Ltd",
+              "invoice_number": "CN-311",
+              "total": -250.0,
+              "currency": "GBP",
+              "due_date": "2026-10-18"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "invoice_text": "Globex Corporation\nShipping notification\nDear customer, your order GX-ORD-3321 has shipped.\nCarrier: Example Parcel Co.\nTracking number: EP123456789GB\nExpected delivery: 3 October 2026\nThis is not an invoice. No payment is required."
+            },
+            "exit": "not_an_invoice"
+          }
+        ],
+        "env": {
+          "deps": []
+        }
+      },
+      "yaml": "kind: proto_step\nname: extract_invoice_fields\ninstruction: |\n  Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.\n\n  Treat any document that states an amount to pay or to credit as an invoice, including pro forma\n  invoices and credit notes; use not_an_invoice only for documents with no amount due at all, such\n  as shipping notices, marketing or letters.\n\n  supplier: the supplier's name exactly as printed at the top of the document.\n  invoice_number: the document's own number exactly as printed (invoice, credit note or pro forma\n  number), not a customer, order or tax registration number.\n  total: the final amount due as a number without currency symbols or thousands separators;\n  negative for credits.\n  currency: the ISO 4217 code if the document states one or the symbol is unambiguous (£ is GBP,\n  € is EUR); otherwise the symbol exactly as printed, for example \"$\".\n  due_date: the payment due date (or the refund-by or valid-until date if there is no due date).\ninputs:\n  invoice_text: string\noutputs:\n  done:\n    supplier: string\n    invoice_number: string\n    total: number\n    currency: string\n    due_date: date\n  not_an_invoice: {}\nexits: [done, not_an_invoice]\nexamples:\n  - inputs:\n      invoice_text: |-\n        ACME Supplies Ltd\n        12 Foundry Lane, Sheffield S1 2AB, United Kingdom\n        VAT registration: GB123456789\n        INVOICE\n        Invoice number: INV-1042\n        Invoice date: 1 September 2026\n        Due date: 1 October 2026\n        Bill to: Wynd Test Ltd, 1 Example Street, London EC1A 1AA\n        Steel brackets (box of 100)      4 x £150.00      £600.00\n        Galvanised bolts M8 (box of 500)      2 x £200.25      £400.50\n        Delivery      £200.00\n        Total due: £1,200.50\n        Payment terms: 30 days. Pay by bank transfer to sort code 00-00-00, account 12345678.\n    outputs: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.50, currency: GBP, due_date: 2026-10-01 }\n    exit: done\n  - inputs:\n      invoice_text: |-\n        Globex Corporation\n        500 Market Street, Springfield, OR 97477, USA\n        INVOICE\n        Invoice No: GX-77810\n        Invoice date: 15 September 2026\n        Payment due: 15 November 2026\n        Bill to: Wynd Test Ltd\n        Consulting services, September 2026: 95 hours at USD 150.00      USD 14,250.00\n        Amount due (USD): 14,250.00\n    outputs: { supplier: Globex Corporation, invoice_number: GX-77810, total: 14250.00, currency: USD, due_date: 2026-11-15 }\n    exit: done\n  - inputs:\n      invoice_text: |-\n        Initech Canada Inc.\n        200 King Street West, Toronto, ON M5H 3T4, Canada\n        GST/HST registration: 123456789 RT0001\n        INVOICE\n        Invoice #: IC-5521\n        Issued: 20 September 2026\n        Due: 20 October 2026\n        Bill to: Wynd Test Ltd\n        TPS report cover sheets (1,000)      $780.00\n        Printer maintenance      $200.00\n        Total: $980.00\n    outputs: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.00, currency: \"$\", due_date: 2026-10-20 }\n    exit: done\n  - inputs:\n      invoice_text: |-\n        Hooli Ltd\n        1 Silicon Way, Cambridge CB1 1AA, United Kingdom\n        CREDIT NOTE\n        Credit note number: CN-311\n        Relates to invoice: HL-2291\n        Date: 18 September 2026\n        Refund due by: 18 October 2026\n        Returned: 2 x Nucleus compression licence      -£250.00\n        Total: -£250.00\n    outputs: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.00, currency: GBP, due_date: 2026-10-18 }\n    exit: done\n  - inputs:\n      invoice_text: |-\n        Globex Corporation\n        Shipping notification\n        Dear customer, your order GX-ORD-3321 has shipped.\n        Carrier: Example Parcel Co.\n        Tracking number: EP123456789GB\n        Expected delivery: 3 October 2026\n        This is not an invoice. No payment is required.\n    exit: not_an_invoice\nenv:\n  deps: []\n"
+    },
+    "processes/process_supplier_invoice/proto/fix_fields.yaml": {
+      "path": "processes/process_supplier_invoice/proto/fix_fields.yaml",
+      "revision": "sha256:57b16d14b8e3ce9e9e00ffd4aae969eb488f1dad72fd00d684e50400049be9b6",
+      "doc": {
+        "kind": "proto_step",
+        "name": "fix_fields",
+        "instruction": "Correct invoice fields that failed validation by re-reading the invoice text.\nChange only the fields named in errors; copy every other field unchanged. The invoice text is the\nonly source of truth. For an ambiguous currency symbol such as \"$\", decide the ISO 4217 code from\nthe supplier's address or other currency mentions in the text. If the text does not support a\ncorrection, return the field unchanged; the validator will then escalate to a human.\n",
+        "inputs": {
+          "invoice_text": "string",
+          "fields": {
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          },
+          "errors": [
+            {
+              "field": "string",
+              "code": "string",
+              "message": "string",
+              "fixable": "boolean"
+            }
+          ]
+        },
+        "outputs": {
+          "supplier": "string",
+          "invoice_number": "string",
+          "total": "number",
+          "currency": "string",
+          "due_date": "date"
+        },
+        "examples": [
+          {
+            "inputs": {
+              "invoice_text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00",
+              "fields": {
+                "supplier": "Initech Canada Inc.",
+                "invoice_number": "IC-5521",
+                "total": 980.0,
+                "currency": "$",
+                "due_date": "2026-10-20"
+              },
+              "errors": [
+                {
+                  "field": "currency",
+                  "code": "unsupported_currency",
+                  "message": "currency '$' is not a supported ISO 4217 code",
+                  "fixable": true
+                }
+              ]
+            },
+            "outputs": {
+              "supplier": "Initech Canada Inc.",
+              "invoice_number": "IC-5521",
+              "total": 980.0,
+              "currency": "CAD",
+              "due_date": "2026-10-20"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "invoice_text": "North Wind Traders\nSupplier ref: SUP/2026/0098\nAmount payable: EUR 312.40 by 30 November 2026",
+              "fields": {
+                "supplier": "North Wind Traders",
+                "invoice_number": "",
+                "total": 312.4,
+                "currency": "EUR",
+                "due_date": "2026-11-30"
+              },
+              "errors": [
+                {
+                  "field": "invoice_number",
+                  "code": "bad_invoice_number",
+                  "message": "invoice_number '' must be 2-32 characters of A-Z, 0-9, '/' or '-'",
+                  "fixable": true
+                }
+              ]
+            },
+            "outputs": {
+              "supplier": "North Wind Traders",
+              "invoice_number": "SUP/2026/0098",
+              "total": 312.4,
+              "currency": "EUR",
+              "due_date": "2026-11-30"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "invoice_text": "Arcade Tokens Co\nInvoice AT-7\nTotal: 50.00 credits, due 1 December 2026",
+              "fields": {
+                "supplier": "Arcade Tokens Co",
+                "invoice_number": "AT-7",
+                "total": 50.0,
+                "currency": "CREDITS",
+                "due_date": "2026-12-01"
+              },
+              "errors": [
+                {
+                  "field": "currency",
+                  "code": "unsupported_currency",
+                  "message": "currency 'CREDITS' is not a supported ISO 4217 code",
+                  "fixable": true
+                }
+              ]
+            },
+            "outputs": {
+              "supplier": "Arcade Tokens Co",
+              "invoice_number": "AT-7",
+              "total": 50.0,
+              "currency": "CREDITS",
+              "due_date": "2026-12-01"
+            },
+            "exit": "done"
+          }
+        ],
+        "env": {
+          "deps": []
+        }
+      },
+      "yaml": "kind: proto_step\nname: fix_fields\ninstruction: |\n  Correct invoice fields that failed validation by re-reading the invoice text.\n  Change only the fields named in errors; copy every other field unchanged. The invoice text is the\n  only source of truth. For an ambiguous currency symbol such as \"$\", decide the ISO 4217 code from\n  the supplier's address or other currency mentions in the text. If the text does not support a\n  correction, return the field unchanged; the validator will then escalate to a human.\ninputs:\n  invoice_text: string\n  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\n  errors: [ { field: string, code: string, message: string, fixable: boolean } ]\noutputs:\n  supplier: string\n  invoice_number: string\n  total: number\n  currency: string\n  due_date: date\nexamples:\n  - inputs:\n      invoice_text: |-\n        Initech Canada Inc.\n        200 King Street West, Toronto, ON M5H 3T4, Canada\n        GST/HST registration: 123456789 RT0001\n        INVOICE\n        Invoice #: IC-5521\n        Issued: 20 September 2026\n        Due: 20 October 2026\n        Bill to: Wynd Test Ltd\n        TPS report cover sheets (1,000)      $780.00\n        Printer maintenance      $200.00\n        Total: $980.00\n      fields: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: \"$\", due_date: 2026-10-20 }\n      errors: [ { field: currency, code: unsupported_currency, message: \"currency '$' is not a supported ISO 4217 code\", fixable: true } ]\n    outputs: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: CAD, due_date: 2026-10-20 }\n    exit: done\n  - inputs:\n      invoice_text: |-\n        North Wind Traders\n        Supplier ref: SUP/2026/0098\n        Amount payable: EUR 312.40 by 30 November 2026\n      fields: { supplier: North Wind Traders, invoice_number: \"\", total: 312.4, currency: EUR, due_date: 2026-11-30 }\n      errors: [ { field: invoice_number, code: bad_invoice_number, message: \"invoice_number '' must be 2-32 characters of A-Z, 0-9, '/' or '-'\", fixable: true } ]\n    outputs: { supplier: North Wind Traders, invoice_number: SUP/2026/0098, total: 312.4, currency: EUR, due_date: 2026-11-30 }\n    exit: done\n  - inputs:                                   # edge case: text cannot support a fix -> unchanged\n      invoice_text: |-\n        Arcade Tokens Co\n        Invoice AT-7\n        Total: 50.00 credits, due 1 December 2026\n      fields: { supplier: Arcade Tokens Co, invoice_number: AT-7, total: 50.0, currency: CREDITS, due_date: 2026-12-01 }\n      errors: [ { field: currency, code: unsupported_currency, message: \"currency 'CREDITS' is not a supported ISO 4217 code\", fixable: true } ]\n    outputs: { supplier: Arcade Tokens Co, invoice_number: AT-7, total: 50.0, currency: CREDITS, due_date: 2026-12-01 }\n    exit: done\nenv:\n  deps: []\n"
+    },
+    "processes/process_supplier_invoice/proto/read_pdf.yaml": {
+      "path": "processes/process_supplier_invoice/proto/read_pdf.yaml",
+      "revision": "sha256:0e85f48bc0f2b7869e88f11e1667b5b075de488dbd6b3f7145c94a967a515341",
+      "doc": {
+        "kind": "proto_step",
+        "name": "read_pdf",
+        "instruction": "Read a PDF file and return its text and page count. Extract text page by page, in order,\nwith a PDF text-extraction library (no OCR); strip trailing newlines from each page's text\nand join pages with a single newline. A PDF with no extractable text returns empty text.\n",
+        "inputs": {
+          "pdf_path": "path"
+        },
+        "outputs": {
+          "text": "string",
+          "pages": "integer"
+        },
+        "examples": [
+          {
+            "inputs": {
+              "pdf_path": "examples/acme_inv_1042.pdf"
+            },
+            "outputs": {
+              "pages": 1,
+              "text": "ACME Supplies Ltd\n12 Foundry Lane, Sheffield S1 2AB, United Kingdom\nVAT registration: GB123456789\nINVOICE\nInvoice number: INV-1042\nInvoice date: 1 September 2026\nDue date: 1 October 2026\nBill to: Wynd Test Ltd, 1 Example Street, London EC1A 1AA\nSteel brackets (box of 100)      4 x £150.00      £600.00\nGalvanised bolts M8 (box of 500)      2 x £200.25      £400.50\nDelivery      £200.00\nTotal due: £1,200.50\nPayment terms: 30 days. Pay by bank transfer to sort code 00-00-00, account 12345678."
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "pdf_path": "examples/shipping_notice.pdf"
+            },
+            "outputs": {
+              "pages": 1,
+              "text": "Globex Corporation\nShipping notification\nDear customer, your order GX-ORD-3321 has shipped.\nCarrier: Example Parcel Co.\nTracking number: EP123456789GB\nExpected delivery: 3 October 2026\nThis is not an invoice. No payment is required."
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "pdf_path": "examples/does_not_exist.pdf"
+            },
+            "exit": "error"
+          }
+        ],
+        "env": {
+          "deps": [
+            "pypdf>=6,<7"
+          ]
+        }
+      },
+      "yaml": "kind: proto_step\nname: read_pdf\ninstruction: |\n  Read a PDF file and return its text and page count. Extract text page by page, in order,\n  with a PDF text-extraction library (no OCR); strip trailing newlines from each page's text\n  and join pages with a single newline. A PDF with no extractable text returns empty text.\ninputs:\n  pdf_path: path\noutputs:\n  text: string\n  pages: integer\nexamples:\n  - inputs: { pdf_path: examples/acme_inv_1042.pdf }\n    outputs:\n      pages: 1\n      text: |-\n        ACME Supplies Ltd\n        12 Foundry Lane, Sheffield S1 2AB, United Kingdom\n        VAT registration: GB123456789\n        INVOICE\n        Invoice number: INV-1042\n        Invoice date: 1 September 2026\n        Due date: 1 October 2026\n        Bill to: Wynd Test Ltd, 1 Example Street, London EC1A 1AA\n        Steel brackets (box of 100)      4 x £150.00      £600.00\n        Galvanised bolts M8 (box of 500)      2 x £200.25      £400.50\n        Delivery      £200.00\n        Total due: £1,200.50\n        Payment terms: 30 days. Pay by bank transfer to sort code 00-00-00, account 12345678.\n    exit: done\n  - inputs: { pdf_path: examples/shipping_notice.pdf }\n    outputs:\n      pages: 1\n      text: |-\n        Globex Corporation\n        Shipping notification\n        Dear customer, your order GX-ORD-3321 has shipped.\n        Carrier: Example Parcel Co.\n        Tracking number: EP123456789GB\n        Expected delivery: 3 October 2026\n        This is not an invoice. No payment is required.\n    exit: done\n  - inputs: { pdf_path: examples/does_not_exist.pdf }\n    exit: error                  # edge case: a missing file resolves to the implicit error exit\nenv:\n  deps: [\"pypdf>=6,<7\"]          # minimum requirement: the exact example text depends on pypdf's extraction\n"
+    },
+    "processes/process_supplier_invoice/proto/save_record.yaml": {
+      "path": "processes/process_supplier_invoice/proto/save_record.yaml",
+      "revision": "sha256:2aee3123dde61dcda01b553c6dcbd2755a0993e3bf9d9f3a96f8365b77250f99",
+      "doc": {
+        "kind": "proto_step",
+        "name": "save_record",
+        "instruction": "Write the invoice record as JSON (2-space indent, trailing newline) into the destination directory,\ncreating the directory if needed. Name the file after the record key with every character outside\nA-Z, a-z, 0-9, \".\", \"_\" and \"-\" replaced by \"_\", plus \".json\". Write atomically (temporary file in\nthe same directory, then rename), replacing an existing file of the same name. Return the record\nunchanged and the file path.\n",
+        "inputs": {
+          "record": {
+            "key": "string",
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          },
+          "dest": "path"
+        },
+        "outputs": {
+          "record": {
+            "key": "string",
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          },
+          "path": "path"
+        },
+        "examples": [
+          {
+            "inputs": {
+              "record": {
+                "key": "acme-supplies-ltd__INV-1042",
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "2026-10-01"
+              },
+              "dest": "{tmp}/records"
+            },
+            "outputs": {
+              "record": {
+                "key": "acme-supplies-ltd__INV-1042",
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "2026-10-01"
+              },
+              "path": "{tmp}/records/acme-supplies-ltd__INV-1042.json"
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "record": {
+                "key": "north-wind-traders__SUP/2026/0098",
+                "supplier": "North Wind Traders",
+                "invoice_number": "SUP/2026/0098",
+                "total": 312.4,
+                "currency": "EUR",
+                "due_date": "2026-11-30"
+              },
+              "dest": "{tmp}/nested/records"
+            },
+            "outputs": {
+              "record": {
+                "key": "north-wind-traders__SUP/2026/0098",
+                "supplier": "North Wind Traders",
+                "invoice_number": "SUP/2026/0098",
+                "total": 312.4,
+                "currency": "EUR",
+                "due_date": "2026-11-30"
+              },
+              "path": "{tmp}/nested/records/north-wind-traders__SUP_2026_0098.json"
+            },
+            "exit": "done"
+          }
+        ],
+        "env": {
+          "deps": []
+        }
+      },
+      "yaml": "kind: proto_step\nname: save_record\ninstruction: |\n  Write the invoice record as JSON (2-space indent, trailing newline) into the destination directory,\n  creating the directory if needed. Name the file after the record key with every character outside\n  A-Z, a-z, 0-9, \".\", \"_\" and \"-\" replaced by \"_\", plus \".json\". Write atomically (temporary file in\n  the same directory, then rename), replacing an existing file of the same name. Return the record\n  unchanged and the file path.\ninputs:\n  record: { key: string, supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\n  dest: path\noutputs:\n  record: { key: string, supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\n  path: path\nexamples:\n  - inputs:\n      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 }\n      dest: \"{tmp}/records\"\n    outputs:\n      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 }\n      path: \"{tmp}/records/acme-supplies-ltd__INV-1042.json\"\n    exit: done\n  - inputs:\n      record: { key: north-wind-traders__SUP/2026/0098, supplier: North Wind Traders, invoice_number: SUP/2026/0098, total: 312.4, currency: EUR, due_date: 2026-11-30 }\n      dest: \"{tmp}/nested/records\"\n    outputs:\n      record: { key: north-wind-traders__SUP/2026/0098, supplier: North Wind Traders, invoice_number: SUP/2026/0098, total: 312.4, currency: EUR, due_date: 2026-11-30 }\n      path: \"{tmp}/nested/records/north-wind-traders__SUP_2026_0098.json\"\n    exit: done\nenv:\n  deps: []\n"
+    },
+    "processes/process_supplier_invoice/proto/validate_fields.yaml": {
+      "path": "processes/process_supplier_invoice/proto/validate_fields.yaml",
+      "revision": "sha256:f9e313f5e14398ec4b9f362f6c3e00241e257ebf258f5985bce7318e61169721",
+      "doc": {
+        "kind": "proto_step",
+        "name": "validate_fields",
+        "instruction": "Validate invoice fields against the accounts-payable rules and normalise them into a record.\nNormalise first: collapse runs of whitespace in supplier to single spaces and trim; strip and\nupper-case invoice_number and currency; round total to 2 decimal places.\nThen check, in this order, collecting every error as {field, code, message, fixable}:\n- supplier empty: missing_supplier, \"supplier is empty\", fixable\n- invoice_number not matching [A-Z0-9][A-Z0-9/-]{1,31}: bad_invoice_number,\n  \"invoice_number '<value>' must be 2-32 characters of A-Z, 0-9, '/' or '-'\", fixable\n- total <= 0: non_positive_total, \"total <total, 2 dp> must be greater than zero\", not fixable\n- otherwise total > 1000000: total_over_limit, \"total <total, 2 dp> exceeds the 1,000,000 approval limit\", not fixable\n- currency not in AUD CAD CHF CNY CZK DKK EUR GBP HKD INR JPY NOK NZD PLN SEK SGD USD ZAR:\n  unsupported_currency, \"currency '<value>' is not a supported ISO 4217 code\", fixable\n- due_date outside 2000-01-01..2100-12-31: due_date_out_of_range,\n  \"due_date <ISO date> is outside 2000-01-01..2100-12-31\", fixable\nvalid: there are no errors. fixable: there is at least one error and every error is fixable.\nfields: the normalised fields. record: the normalised fields plus key, which is\n\"<slug>__<invoice_number>\" where slug is the lower-cased supplier with each run of characters\noutside a-z and 0-9 replaced by \"-\" and leading/trailing \"-\" removed.\n",
+        "inputs": {
+          "fields": {
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          }
+        },
+        "outputs": {
+          "valid": "boolean",
+          "fixable": "boolean",
+          "errors": [
+            {
+              "field": "string",
+              "code": "string",
+              "message": "string",
+              "fixable": "boolean"
+            }
+          ],
+          "fields": {
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          },
+          "record": {
+            "key": "string",
+            "supplier": "string",
+            "invoice_number": "string",
+            "total": "number",
+            "currency": "string",
+            "due_date": "date"
+          }
+        },
+        "examples": [
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "2026-10-01"
+              }
+            },
+            "outputs": {
+              "valid": true,
+              "fixable": false,
+              "errors": [],
+              "fields": {
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "2026-10-01"
+              },
+              "record": {
+                "key": "acme-supplies-ltd__INV-1042",
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "2026-10-01"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "  Globex   Corporation ",
+                "invoice_number": " gx-77810",
+                "total": 14250.004,
+                "currency": "usd",
+                "due_date": "2026-11-15"
+              }
+            },
+            "outputs": {
+              "valid": true,
+              "fixable": false,
+              "errors": [],
+              "fields": {
+                "supplier": "Globex Corporation",
+                "invoice_number": "GX-77810",
+                "total": 14250.0,
+                "currency": "USD",
+                "due_date": "2026-11-15"
+              },
+              "record": {
+                "key": "globex-corporation__GX-77810",
+                "supplier": "Globex Corporation",
+                "invoice_number": "GX-77810",
+                "total": 14250.0,
+                "currency": "USD",
+                "due_date": "2026-11-15"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "Initech Canada Inc.",
+                "invoice_number": "IC-5521",
+                "total": 980.0,
+                "currency": "$",
+                "due_date": "2026-10-20"
+              }
+            },
+            "outputs": {
+              "valid": false,
+              "fixable": true,
+              "errors": [
+                {
+                  "field": "currency",
+                  "code": "unsupported_currency",
+                  "message": "currency '$' is not a supported ISO 4217 code",
+                  "fixable": true
+                }
+              ],
+              "fields": {
+                "supplier": "Initech Canada Inc.",
+                "invoice_number": "IC-5521",
+                "total": 980.0,
+                "currency": "$",
+                "due_date": "2026-10-20"
+              },
+              "record": {
+                "key": "initech-canada-inc__IC-5521",
+                "supplier": "Initech Canada Inc.",
+                "invoice_number": "IC-5521",
+                "total": 980.0,
+                "currency": "$",
+                "due_date": "2026-10-20"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "GBP",
+                "due_date": "2026-10-18"
+              }
+            },
+            "outputs": {
+              "valid": false,
+              "fixable": false,
+              "errors": [
+                {
+                  "field": "total",
+                  "code": "non_positive_total",
+                  "message": "total -250.00 must be greater than zero",
+                  "fixable": false
+                }
+              ],
+              "fields": {
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "GBP",
+                "due_date": "2026-10-18"
+              },
+              "record": {
+                "key": "hooli-ltd__CN-311",
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "GBP",
+                "due_date": "2026-10-18"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "$",
+                "due_date": "2026-10-18"
+              }
+            },
+            "outputs": {
+              "valid": false,
+              "fixable": false,
+              "errors": [
+                {
+                  "field": "total",
+                  "code": "non_positive_total",
+                  "message": "total -250.00 must be greater than zero",
+                  "fixable": false
+                },
+                {
+                  "field": "currency",
+                  "code": "unsupported_currency",
+                  "message": "currency '$' is not a supported ISO 4217 code",
+                  "fixable": true
+                }
+              ],
+              "fields": {
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "$",
+                "due_date": "2026-10-18"
+              },
+              "record": {
+                "key": "hooli-ltd__CN-311",
+                "supplier": "Hooli Ltd",
+                "invoice_number": "CN-311",
+                "total": -250.0,
+                "currency": "$",
+                "due_date": "2026-10-18"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "",
+                "invoice_number": "",
+                "total": 10.0,
+                "currency": "EUR",
+                "due_date": "2026-12-01"
+              }
+            },
+            "outputs": {
+              "valid": false,
+              "fixable": true,
+              "errors": [
+                {
+                  "field": "supplier",
+                  "code": "missing_supplier",
+                  "message": "supplier is empty",
+                  "fixable": true
+                },
+                {
+                  "field": "invoice_number",
+                  "code": "bad_invoice_number",
+                  "message": "invoice_number '' must be 2-32 characters of A-Z, 0-9, '/' or '-'",
+                  "fixable": true
+                }
+              ],
+              "fields": {
+                "supplier": "",
+                "invoice_number": "",
+                "total": 10.0,
+                "currency": "EUR",
+                "due_date": "2026-12-01"
+              },
+              "record": {
+                "key": "__",
+                "supplier": "",
+                "invoice_number": "",
+                "total": 10.0,
+                "currency": "EUR",
+                "due_date": "2026-12-01"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "1999-10-01"
+              }
+            },
+            "outputs": {
+              "valid": false,
+              "fixable": true,
+              "errors": [
+                {
+                  "field": "due_date",
+                  "code": "due_date_out_of_range",
+                  "message": "due_date 1999-10-01 is outside 2000-01-01..2100-12-31",
+                  "fixable": true
+                }
+              ],
+              "fields": {
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "1999-10-01"
+              },
+              "record": {
+                "key": "acme-supplies-ltd__INV-1042",
+                "supplier": "ACME Supplies Ltd",
+                "invoice_number": "INV-1042",
+                "total": 1200.5,
+                "currency": "GBP",
+                "due_date": "1999-10-01"
+              }
+            },
+            "exit": "done"
+          },
+          {
+            "inputs": {
+              "fields": {
+                "supplier": "Globex Corporation",
+                "invoice_number": "GX-1",
+                "total": 2000000.0,
+                "currency": "USD",
+                "due_date": "2026-12-01"
+              }
+            },
+            "outputs": {
+              "valid": false,
+              "fixable": false,
+              "errors": [
+                {
+                  "field": "total",
+                  "code": "total_over_limit",
+                  "message": "total 2000000.00 exceeds the 1,000,000 approval limit",
+                  "fixable": false
+                }
+              ],
+              "fields": {
+                "supplier": "Globex Corporation",
+                "invoice_number": "GX-1",
+                "total": 2000000.0,
+                "currency": "USD",
+                "due_date": "2026-12-01"
+              },
+              "record": {
+                "key": "globex-corporation__GX-1",
+                "supplier": "Globex Corporation",
+                "invoice_number": "GX-1",
+                "total": 2000000.0,
+                "currency": "USD",
+                "due_date": "2026-12-01"
+              }
+            },
+            "exit": "done"
+          }
+        ],
+        "env": {
+          "deps": []
+        }
+      },
+      "yaml": "kind: proto_step\nname: validate_fields\ninstruction: |\n  Validate invoice fields against the accounts-payable rules and normalise them into a record.\n  Normalise first: collapse runs of whitespace in supplier to single spaces and trim; strip and\n  upper-case invoice_number and currency; round total to 2 decimal places.\n  Then check, in this order, collecting every error as {field, code, message, fixable}:\n  - supplier empty: missing_supplier, \"supplier is empty\", fixable\n  - invoice_number not matching [A-Z0-9][A-Z0-9/-]{1,31}: bad_invoice_number,\n    \"invoice_number '<value>' must be 2-32 characters of A-Z, 0-9, '/' or '-'\", fixable\n  - total <= 0: non_positive_total, \"total <total, 2 dp> must be greater than zero\", not fixable\n  - otherwise total > 1000000: total_over_limit, \"total <total, 2 dp> exceeds the 1,000,000 approval limit\", not fixable\n  - currency not in AUD CAD CHF CNY CZK DKK EUR GBP HKD INR JPY NOK NZD PLN SEK SGD USD ZAR:\n    unsupported_currency, \"currency '<value>' is not a supported ISO 4217 code\", fixable\n  - due_date outside 2000-01-01..2100-12-31: due_date_out_of_range,\n    \"due_date <ISO date> is outside 2000-01-01..2100-12-31\", fixable\n  valid: there are no errors. fixable: there is at least one error and every error is fixable.\n  fields: the normalised fields. record: the normalised fields plus key, which is\n  \"<slug>__<invoice_number>\" where slug is the lower-cased supplier with each run of characters\n  outside a-z and 0-9 replaced by \"-\" and leading/trailing \"-\" removed.\ninputs:\n  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\noutputs:\n  valid: boolean\n  fixable: boolean\n  errors: [ { field: string, code: string, message: string, fixable: boolean } ]\n  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\n  record: { key: string, supplier: string, invoice_number: string, total: number, currency: string, due_date: date }\nexamples:\n  - inputs: { fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 } }\n    outputs:\n      valid: true\n      fixable: false\n      errors: []\n      fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 }\n      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 2026-10-01 }\n    exit: done\n  - inputs: { fields: { supplier: \"  Globex   Corporation \", invoice_number: \" gx-77810\", total: 14250.004, currency: usd, due_date: 2026-11-15 } }\n    outputs:\n      valid: true\n      fixable: false\n      errors: []\n      fields: { supplier: Globex Corporation, invoice_number: GX-77810, total: 14250.0, currency: USD, due_date: 2026-11-15 }\n      record: { key: globex-corporation__GX-77810, supplier: Globex Corporation, invoice_number: GX-77810, total: 14250.0, currency: USD, due_date: 2026-11-15 }\n    exit: done\n  - inputs: { fields: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: \"$\", due_date: 2026-10-20 } }\n    outputs:\n      valid: false\n      fixable: true\n      errors: [ { field: currency, code: unsupported_currency, message: \"currency '$' is not a supported ISO 4217 code\", fixable: true } ]\n      fields: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: \"$\", due_date: 2026-10-20 }\n      record: { key: initech-canada-inc__IC-5521, supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: \"$\", due_date: 2026-10-20 }\n    exit: done\n  - inputs: { fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 } }\n    outputs:\n      valid: false\n      fixable: false\n      errors: [ { field: total, code: non_positive_total, message: \"total -250.00 must be greater than zero\", fixable: false } ]\n      fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 }\n      record: { key: hooli-ltd__CN-311, supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 }\n    exit: done\n  - inputs: { fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: \"$\", due_date: 2026-10-18 } }\n    outputs:\n      valid: false\n      fixable: false                        # one unfixable error makes the whole set unfixable\n      errors:\n        - { field: total, code: non_positive_total, message: \"total -250.00 must be greater than zero\", fixable: false }\n        - { field: currency, code: unsupported_currency, message: \"currency '$' is not a supported ISO 4217 code\", fixable: true }\n      fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: \"$\", due_date: 2026-10-18 }\n      record: { key: hooli-ltd__CN-311, supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: \"$\", due_date: 2026-10-18 }\n    exit: done\n  - inputs: { fields: { supplier: \"\", invoice_number: \"\", total: 10.0, currency: EUR, due_date: 2026-12-01 } }\n    outputs:\n      valid: false\n      fixable: true\n      errors:\n        - { field: supplier, code: missing_supplier, message: \"supplier is empty\", fixable: true }\n        - { field: invoice_number, code: bad_invoice_number, message: \"invoice_number '' must be 2-32 characters of A-Z, 0-9, '/' or '-'\", fixable: true }\n      fields: { supplier: \"\", invoice_number: \"\", total: 10.0, currency: EUR, due_date: 2026-12-01 }\n      record: { key: __, supplier: \"\", invoice_number: \"\", total: 10.0, currency: EUR, due_date: 2026-12-01 }\n    exit: done\n  - inputs: { fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 1999-10-01 } }\n    outputs:\n      valid: false\n      fixable: true\n      errors: [ { field: due_date, code: due_date_out_of_range, message: \"due_date 1999-10-01 is outside 2000-01-01..2100-12-31\", fixable: true } ]\n      fields: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 1999-10-01 }\n      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.5, currency: GBP, due_date: 1999-10-01 }\n    exit: done\n  - inputs: { fields: { supplier: Globex Corporation, invoice_number: GX-1, total: 2000000.0, currency: USD, due_date: 2026-12-01 } }\n    outputs:\n      valid: false\n      fixable: false\n      errors: [ { field: total, code: total_over_limit, message: \"total 2000000.00 exceeds the 1,000,000 approval limit\", fixable: false } ]\n      fields: { supplier: Globex Corporation, invoice_number: GX-1, total: 2000000.0, currency: USD, due_date: 2026-12-01 }\n      record: { key: globex-corporation__GX-1, supplier: Globex Corporation, invoice_number: GX-1, total: 2000000.0, currency: USD, due_date: 2026-12-01 }\n    exit: done\nenv:\n  deps: []\n"
+    }
+  },
+  "steps": {
+    "read": {
+      "name": "read",
+      "use": "./steps/read_pdf",
+      "ref_kind": "local",
+      "resolved": true,
+      "proto_path": "processes/process_supplier_invoice/proto/read_pdf.yaml",
+      "source_path": "processes/process_supplier_invoice/steps/read_pdf",
+      "kind": "deterministic",
+      "phase": "compiled",
+      "lock": {
+        "provider": null,
+        "tier": null,
+        "thinking": null,
+        "effects": [],
+        "env": []
+      },
+      "used_by": [
+        "process_supplier_invoice"
+      ],
+      "instruction": "Read a PDF file and return its text and page count. Extract text page by page, in order,\nwith a PDF text-extraction library (no OCR); strip trailing newlines from each page's text\nand join pages with a single newline. A PDF with no extractable text returns empty text.\n",
+      "interface": {
+        "inputs": {
+          "properties": {
+            "pdf_path": {
+              "format": "path",
+              "title": "Pdf Path",
+              "type": "string"
+            }
+          },
+          "required": [
+            "pdf_path"
+          ],
+          "title": "Input",
+          "type": "object"
+        },
+        "exits": [
+          {
+            "name": "done",
+            "schema": {
+              "properties": {
+                "exit": {
+                  "const": "done",
+                  "default": "done",
+                  "title": "Exit",
+                  "type": "string"
+                },
+                "text": {
+                  "title": "Text",
+                  "type": "string"
+                },
+                "pages": {
+                  "title": "Pages",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "text",
+                "pages"
+              ],
+              "title": "Output",
+              "type": "object"
+            }
+          }
+        ],
+        "source": "compiled"
+      }
+    },
+    "extract": {
+      "name": "extract",
+      "use": "./steps/extract_invoice_fields",
+      "ref_kind": "local",
+      "resolved": true,
+      "proto_path": "processes/process_supplier_invoice/proto/extract_invoice_fields.yaml",
+      "source_path": "processes/process_supplier_invoice/steps/extract_invoice_fields",
+      "kind": "agentic",
+      "phase": "compiled",
+      "lock": {
+        "provider": null,
+        "tier": "cheap",
+        "thinking": "low",
+        "effects": [],
+        "env": []
+      },
+      "used_by": [
+        "process_supplier_invoice"
+      ],
+      "instruction": "Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.\n\nTreat any document that states an amount to pay or to credit as an invoice, including pro forma\ninvoices and credit notes; use not_an_invoice only for documents with no amount due at all, such\nas shipping notices, marketing or letters.\n\nsupplier: the supplier's name exactly as printed at the top of the document.\ninvoice_number: the document's own number exactly as printed (invoice, credit note or pro forma\nnumber), not a customer, order or tax registration number.\ntotal: the final amount due as a number without currency symbols or thousands separators;\nnegative for credits.\ncurrency: the ISO 4217 code if the document states one or the symbol is unambiguous (£ is GBP,\n€ is EUR); otherwise the symbol exactly as printed, for example \"$\".\ndue_date: the payment due date (or the refund-by or valid-until date if there is no due date).\n",
+      "interface": {
+        "inputs": {
+          "properties": {
+            "invoice_text": {
+              "title": "Invoice Text",
+              "type": "string"
+            }
+          },
+          "required": [
+            "invoice_text"
+          ],
+          "title": "Input",
+          "type": "object"
+        },
+        "exits": [
+          {
+            "name": "done",
+            "schema": {
+              "properties": {
+                "exit": {
+                  "const": "done",
+                  "default": "done",
+                  "title": "Exit",
+                  "type": "string"
+                },
+                "supplier": {
+                  "title": "Supplier",
+                  "type": "string"
+                },
+                "invoice_number": {
+                  "title": "Invoice Number",
+                  "type": "string"
+                },
+                "total": {
+                  "title": "Total",
+                  "type": "number"
+                },
+                "currency": {
+                  "title": "Currency",
+                  "type": "string"
+                },
+                "due_date": {
+                  "format": "date",
+                  "title": "Due Date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "supplier",
+                "invoice_number",
+                "total",
+                "currency",
+                "due_date"
+              ],
+              "title": "Done",
+              "type": "object"
+            }
+          },
+          {
+            "name": "not_an_invoice",
+            "schema": {
+              "properties": {
+                "exit": {
+                  "const": "not_an_invoice",
+                  "default": "not_an_invoice",
+                  "title": "Exit",
+                  "type": "string"
+                }
+              },
+              "title": "NotAnInvoice",
+              "type": "object"
+            }
+          }
+        ],
+        "source": "compiled"
+      }
+    },
+    "validate": {
+      "name": "validate",
+      "use": "./steps/validate_fields",
+      "ref_kind": "local",
+      "resolved": true,
+      "proto_path": "processes/process_supplier_invoice/proto/validate_fields.yaml",
+      "source_path": "processes/process_supplier_invoice/steps/validate_fields",
+      "kind": "deterministic",
+      "phase": "compiled",
+      "lock": {
+        "provider": null,
+        "tier": null,
+        "thinking": null,
+        "effects": [],
+        "env": []
+      },
+      "used_by": [
+        "process_supplier_invoice"
+      ],
+      "instruction": "Validate invoice fields against the accounts-payable rules and normalise them into a record.\nNormalise first: collapse runs of whitespace in supplier to single spaces and trim; strip and\nupper-case invoice_number and currency; round total to 2 decimal places.\nThen check, in this order, collecting every error as {field, code, message, fixable}:\n- supplier empty: missing_supplier, \"supplier is empty\", fixable\n- invoice_number not matching [A-Z0-9][A-Z0-9/-]{1,31}: bad_invoice_number,\n  \"invoice_number '<value>' must be 2-32 characters of A-Z, 0-9, '/' or '-'\", fixable\n- total <= 0: non_positive_total, \"total <total, 2 dp> must be greater than zero\", not fixable\n- otherwise total > 1000000: total_over_limit, \"total <total, 2 dp> exceeds the 1,000,000 approval limit\", not fixable\n- currency not in AUD CAD CHF CNY CZK DKK EUR GBP HKD INR JPY NOK NZD PLN SEK SGD USD ZAR:\n  unsupported_currency, \"currency '<value>' is not a supported ISO 4217 code\", fixable\n- due_date outside 2000-01-01..2100-12-31: due_date_out_of_range,\n  \"due_date <ISO date> is outside 2000-01-01..2100-12-31\", fixable\nvalid: there are no errors. fixable: there is at least one error and every error is fixable.\nfields: the normalised fields. record: the normalised fields plus key, which is\n\"<slug>__<invoice_number>\" where slug is the lower-cased supplier with each run of characters\noutside a-z and 0-9 replaced by \"-\" and leading/trailing \"-\" removed.\n",
+      "interface": {
+        "inputs": {
+          "$defs": {
+            "InvoiceFields": {
+              "properties": {
+                "supplier": {
+                  "title": "Supplier",
+                  "type": "string"
+                },
+                "invoice_number": {
+                  "title": "Invoice Number",
+                  "type": "string"
+                },
+                "total": {
+                  "title": "Total",
+                  "type": "number"
+                },
+                "currency": {
+                  "title": "Currency",
+                  "type": "string"
+                },
+                "due_date": {
+                  "format": "date",
+                  "title": "Due Date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "supplier",
+                "invoice_number",
+                "total",
+                "currency",
+                "due_date"
+              ],
+              "title": "InvoiceFields",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "fields": {
+              "$ref": "#/$defs/InvoiceFields"
+            }
+          },
+          "required": [
+            "fields"
+          ],
+          "title": "Input",
+          "type": "object"
+        },
+        "exits": [
+          {
+            "name": "done",
+            "schema": {
+              "$defs": {
+                "FieldError": {
+                  "properties": {
+                    "field": {
+                      "title": "Field",
+                      "type": "string"
+                    },
+                    "code": {
+                      "title": "Code",
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    },
+                    "fixable": {
+                      "title": "Fixable",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "code",
+                    "message",
+                    "fixable"
+                  ],
+                  "title": "FieldError",
+                  "type": "object"
+                },
+                "InvoiceFields": {
+                  "properties": {
+                    "supplier": {
+                      "title": "Supplier",
+                      "type": "string"
+                    },
+                    "invoice_number": {
+                      "title": "Invoice Number",
+                      "type": "string"
+                    },
+                    "total": {
+                      "title": "Total",
+                      "type": "number"
+                    },
+                    "currency": {
+                      "title": "Currency",
+                      "type": "string"
+                    },
+                    "due_date": {
+                      "format": "date",
+                      "title": "Due Date",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "supplier",
+                    "invoice_number",
+                    "total",
+                    "currency",
+                    "due_date"
+                  ],
+                  "title": "InvoiceFields",
+                  "type": "object"
+                },
+                "InvoiceRecord": {
+                  "properties": {
+                    "key": {
+                      "title": "Key",
+                      "type": "string"
+                    },
+                    "supplier": {
+                      "title": "Supplier",
+                      "type": "string"
+                    },
+                    "invoice_number": {
+                      "title": "Invoice Number",
+                      "type": "string"
+                    },
+                    "total": {
+                      "title": "Total",
+                      "type": "number"
+                    },
+                    "currency": {
+                      "title": "Currency",
+                      "type": "string"
+                    },
+                    "due_date": {
+                      "format": "date",
+                      "title": "Due Date",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "supplier",
+                    "invoice_number",
+                    "total",
+                    "currency",
+                    "due_date"
+                  ],
+                  "title": "InvoiceRecord",
+                  "type": "object"
+                }
+              },
+              "properties": {
+                "exit": {
+                  "const": "done",
+                  "default": "done",
+                  "title": "Exit",
+                  "type": "string"
+                },
+                "valid": {
+                  "title": "Valid",
+                  "type": "boolean"
+                },
+                "fixable": {
+                  "title": "Fixable",
+                  "type": "boolean"
+                },
+                "errors": {
+                  "items": {
+                    "$ref": "#/$defs/FieldError"
+                  },
+                  "title": "Errors",
+                  "type": "array"
+                },
+                "fields": {
+                  "$ref": "#/$defs/InvoiceFields"
+                },
+                "record": {
+                  "$ref": "#/$defs/InvoiceRecord"
+                }
+              },
+              "required": [
+                "valid",
+                "fixable",
+                "errors",
+                "fields",
+                "record"
+              ],
+              "title": "Output",
+              "type": "object"
+            }
+          }
+        ],
+        "source": "compiled"
+      }
+    },
+    "fix": {
+      "name": "fix",
+      "use": "./steps/fix_fields",
+      "ref_kind": "local",
+      "resolved": true,
+      "proto_path": "processes/process_supplier_invoice/proto/fix_fields.yaml",
+      "source_path": "processes/process_supplier_invoice/steps/fix_fields",
+      "kind": "agentic",
+      "phase": "design",
+      "lock": {
+        "provider": null,
+        "tier": "cheap",
+        "thinking": "low",
+        "effects": [],
+        "env": []
+      },
+      "used_by": [
+        "process_supplier_invoice"
+      ],
+      "instruction": "Correct invoice fields that failed validation by re-reading the invoice text.\nChange only the fields named in errors; copy every other field unchanged. The invoice text is the\nonly source of truth. For an ambiguous currency symbol such as \"$\", decide the ISO 4217 code from\nthe supplier's address or other currency mentions in the text. If the text does not support a\ncorrection, return the field unchanged; the validator will then escalate to a human.\n",
+      "interface": {
+        "inputs": {
+          "$defs": {
+            "FieldError": {
+              "properties": {
+                "field": {
+                  "title": "Field",
+                  "type": "string"
+                },
+                "code": {
+                  "title": "Code",
+                  "type": "string"
+                },
+                "message": {
+                  "title": "Message",
+                  "type": "string"
+                },
+                "fixable": {
+                  "title": "Fixable",
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "field",
+                "code",
+                "message",
+                "fixable"
+              ],
+              "title": "FieldError",
+              "type": "object"
+            },
+            "InvoiceFields": {
+              "properties": {
+                "supplier": {
+                  "title": "Supplier",
+                  "type": "string"
+                },
+                "invoice_number": {
+                  "title": "Invoice Number",
+                  "type": "string"
+                },
+                "total": {
+                  "title": "Total",
+                  "type": "number"
+                },
+                "currency": {
+                  "title": "Currency",
+                  "type": "string"
+                },
+                "due_date": {
+                  "format": "date",
+                  "title": "Due Date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "supplier",
+                "invoice_number",
+                "total",
+                "currency",
+                "due_date"
+              ],
+              "title": "InvoiceFields",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "invoice_text": {
+              "title": "Invoice Text",
+              "type": "string"
+            },
+            "fields": {
+              "$ref": "#/$defs/InvoiceFields"
+            },
+            "errors": {
+              "items": {
+                "$ref": "#/$defs/FieldError"
+              },
+              "title": "Errors",
+              "type": "array"
+            }
+          },
+          "required": [
+            "invoice_text",
+            "fields",
+            "errors"
+          ],
+          "title": "Input",
+          "type": "object"
+        },
+        "exits": [
+          {
+            "name": "done",
+            "schema": {
+              "properties": {
+                "exit": {
+                  "const": "done",
+                  "default": "done",
+                  "title": "Exit",
+                  "type": "string"
+                },
+                "supplier": {
+                  "title": "Supplier",
+                  "type": "string"
+                },
+                "invoice_number": {
+                  "title": "Invoice Number",
+                  "type": "string"
+                },
+                "total": {
+                  "title": "Total",
+                  "type": "number"
+                },
+                "currency": {
+                  "title": "Currency",
+                  "type": "string"
+                },
+                "due_date": {
+                  "format": "date",
+                  "title": "Due Date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "supplier",
+                "invoice_number",
+                "total",
+                "currency",
+                "due_date"
+              ],
+              "title": "Output",
+              "type": "object"
+            }
+          }
+        ],
+        "source": "compiled"
+      }
+    },
+    "save": {
+      "name": "save",
+      "use": "./steps/save_record",
+      "ref_kind": "local",
+      "resolved": true,
+      "proto_path": "processes/process_supplier_invoice/proto/save_record.yaml",
+      "source_path": "processes/process_supplier_invoice/steps/save_record",
+      "kind": "deterministic",
+      "phase": "compiled",
+      "lock": {
+        "provider": null,
+        "tier": null,
+        "thinking": null,
+        "effects": [
+          "filesystem"
+        ],
+        "env": []
+      },
+      "used_by": [
+        "process_supplier_invoice"
+      ],
+      "instruction": "Write the invoice record as JSON (2-space indent, trailing newline) into the destination directory,\ncreating the directory if needed. Name the file after the record key with every character outside\nA-Z, a-z, 0-9, \".\", \"_\" and \"-\" replaced by \"_\", plus \".json\". Write atomically (temporary file in\nthe same directory, then rename), replacing an existing file of the same name. Return the record\nunchanged and the file path.\n",
+      "interface": {
+        "inputs": {
+          "$defs": {
+            "InvoiceRecord": {
+              "properties": {
+                "key": {
+                  "title": "Key",
+                  "type": "string"
+                },
+                "supplier": {
+                  "title": "Supplier",
+                  "type": "string"
+                },
+                "invoice_number": {
+                  "title": "Invoice Number",
+                  "type": "string"
+                },
+                "total": {
+                  "title": "Total",
+                  "type": "number"
+                },
+                "currency": {
+                  "title": "Currency",
+                  "type": "string"
+                },
+                "due_date": {
+                  "format": "date",
+                  "title": "Due Date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key",
+                "supplier",
+                "invoice_number",
+                "total",
+                "currency",
+                "due_date"
+              ],
+              "title": "InvoiceRecord",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "record": {
+              "$ref": "#/$defs/InvoiceRecord"
+            },
+            "dest": {
+              "format": "path",
+              "title": "Dest",
+              "type": "string"
+            }
+          },
+          "required": [
+            "record",
+            "dest"
+          ],
+          "title": "Input",
+          "type": "object"
+        },
+        "exits": [
+          {
+            "name": "done",
+            "schema": {
+              "$defs": {
+                "InvoiceRecord": {
+                  "properties": {
+                    "key": {
+                      "title": "Key",
+                      "type": "string"
+                    },
+                    "supplier": {
+                      "title": "Supplier",
+                      "type": "string"
+                    },
+                    "invoice_number": {
+                      "title": "Invoice Number",
+                      "type": "string"
+                    },
+                    "total": {
+                      "title": "Total",
+                      "type": "number"
+                    },
+                    "currency": {
+                      "title": "Currency",
+                      "type": "string"
+                    },
+                    "due_date": {
+                      "format": "date",
+                      "title": "Due Date",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "supplier",
+                    "invoice_number",
+                    "total",
+                    "currency",
+                    "due_date"
+                  ],
+                  "title": "InvoiceRecord",
+                  "type": "object"
+                }
+              },
+              "properties": {
+                "exit": {
+                  "const": "done",
+                  "default": "done",
+                  "title": "Exit",
+                  "type": "string"
+                },
+                "record": {
+                  "$ref": "#/$defs/InvoiceRecord"
+                },
+                "path": {
+                  "format": "path",
+                  "title": "Path",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "record",
+                "path"
+              ],
+              "title": "Output",
+              "type": "object"
+            }
+          }
+        ],
+        "source": "compiled"
+      }
+    },
+    "escalate": {
+      "name": "escalate",
+      "use": "./steps/escalate_to_human",
+      "ref_kind": "local",
+      "resolved": true,
+      "proto_path": "processes/process_supplier_invoice/proto/escalate_to_human.yaml",
+      "source_path": "processes/process_supplier_invoice/steps/escalate_to_human",
+      "kind": "deterministic",
+      "phase": "compiled",
+      "lock": {
+        "provider": null,
+        "tier": null,
+        "thinking": null,
+        "effects": [
+          "filesystem"
+        ],
+        "env": []
+      },
+      "used_by": [
+        "process_supplier_invoice"
+      ],
+      "instruction": "Write an escalation ticket for a human reviewer into the queue directory, creating it if needed.\nName it \"<run_id>.json\" with every character outside A-Z, a-z, 0-9, \".\", \"_\" and \"-\" replaced by \"_\".\nThe ticket is a JSON object with run_id, fields, errors, and reasons: the error messages, or when\nthere are no errors the single reason \"routed to review by the process; see `wynd trace <run_id>`\".\nWrite it with sorted keys, 2-space indent and a trailing newline, atomically. Return the ticket path.\n",
+      "interface": {
+        "inputs": {
+          "$defs": {
+            "FieldError": {
+              "properties": {
+                "field": {
+                  "title": "Field",
+                  "type": "string"
+                },
+                "code": {
+                  "title": "Code",
+                  "type": "string"
+                },
+                "message": {
+                  "title": "Message",
+                  "type": "string"
+                },
+                "fixable": {
+                  "title": "Fixable",
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "field",
+                "code",
+                "message",
+                "fixable"
+              ],
+              "title": "FieldError",
+              "type": "object"
+            },
+            "InvoiceFields": {
+              "properties": {
+                "supplier": {
+                  "title": "Supplier",
+                  "type": "string"
+                },
+                "invoice_number": {
+                  "title": "Invoice Number",
+                  "type": "string"
+                },
+                "total": {
+                  "title": "Total",
+                  "type": "number"
+                },
+                "currency": {
+                  "title": "Currency",
+                  "type": "string"
+                },
+                "due_date": {
+                  "format": "date",
+                  "title": "Due Date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "supplier",
+                "invoice_number",
+                "total",
+                "currency",
+                "due_date"
+              ],
+              "title": "InvoiceFields",
+              "type": "object"
+            }
+          },
+          "properties": {
+            "fields": {
+              "$ref": "#/$defs/InvoiceFields"
+            },
+            "errors": {
+              "items": {
+                "$ref": "#/$defs/FieldError"
+              },
+              "title": "Errors",
+              "type": "array"
+            },
+            "queue_dir": {
+              "format": "path",
+              "title": "Queue Dir",
+              "type": "string"
+            },
+            "run_id": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "fields",
+            "errors",
+            "queue_dir",
+            "run_id"
+          ],
+          "title": "Input",
+          "type": "object"
+        },
+        "exits": [
+          {
+            "name": "done",
+            "schema": {
+              "properties": {
+                "exit": {
+                  "const": "done",
+                  "default": "done",
+                  "title": "Exit",
+                  "type": "string"
+                },
+                "ticket_path": {
+                  "format": "path",
+                  "title": "Ticket Path",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ticket_path"
+              ],
+              "title": "Output",
+              "type": "object"
+            }
+          }
+        ],
+        "source": "compiled"
+      }
+    }
+  },
+  "interface": {
+    "commit": null,
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "pdf_path": {
+          "type": "string",
+          "format": "path"
+        }
+      },
+      "required": [
+        "pdf_path"
+      ],
+      "additionalProperties": false
+    },
+    "outputs": {
+      "done": {
+        "type": "object",
+        "properties": {
+          "exit": {
+            "const": "done"
+          },
+          "record": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "exit",
+          "record"
+        ],
+        "additionalProperties": false
+      },
+      "not_an_invoice": {
+        "type": "object",
+        "properties": {
+          "exit": {
+            "const": "not_an_invoice"
+          }
+        },
+        "required": [
+          "exit"
+        ],
+        "additionalProperties": false
+      },
+      "needs_review": {
+        "type": "object",
+        "properties": {
+          "exit": {
+            "const": "needs_review"
+          }
+        },
+        "required": [
+          "exit"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "examples": [
+      {
+        "inputs": {
+          "pdf_path": "examples/acme_inv_1042.pdf"
+        },
+        "outputs": {
+          "record": {
+            "key": "acme-supplies-ltd__INV-1042",
+            "supplier": "ACME Supplies Ltd",
+            "invoice_number": "INV-1042",
+            "total": 1200.5,
+            "currency": "GBP",
+            "due_date": "2026-10-01"
+          }
+        },
+        "exit": "done"
+      },
+      {
+        "inputs": {
+          "pdf_path": "examples/globex_inv_77810.pdf"
+        },
+        "outputs": {
+          "record": {
+            "key": "globex-corporation__GX-77810",
+            "supplier": "Globex Corporation",
+            "invoice_number": "GX-77810",
+            "total": 14250.0,
+            "currency": "USD",
+            "due_date": "2026-11-15"
+          }
+        },
+        "exit": "done"
+      },
+      {
+        "inputs": {
+          "pdf_path": "examples/initech_inv_5521.pdf"
+        },
+        "outputs": {
+          "record": {
+            "key": "initech-canada-inc__IC-5521",
+            "supplier": "Initech Canada Inc.",
+            "invoice_number": "IC-5521",
+            "total": 980.0,
+            "currency": "CAD",
+            "due_date": "2026-10-20"
+          }
+        },
+        "exit": "done"
+      },
+      {
+        "inputs": {
+          "pdf_path": "examples/shipping_notice.pdf"
+        },
+        "outputs": {},
+        "exit": "not_an_invoice"
+      },
+      {
+        "inputs": {
+          "pdf_path": "examples/hooli_credit_note_311.pdf"
+        },
+        "outputs": {},
+        "exit": "needs_review"
+      }
+    ]
+  },
+  "available_local": [],
+  "conventions": {
+    "local_use": "./steps/{name}",
+    "local_proto_path": "processes/process_supplier_invoice/proto/{name}.yaml"
+  },
+  "validation": {
+    "ok": true,
+    "issues": [
+      {
+        "severity": "info",
+        "code": "I201",
+        "message": "branch 'validate.done[1]' → 'fix' lies on a cycle; max_traversals defaulted to 10",
+        "file": "processes/process_supplier_invoice/process.yaml",
+        "loc": [
+          "edges",
+          3,
+          "to",
+          1
+        ],
+        "span": null
+      },
+      {
+        "severity": "info",
+        "code": "I201",
+        "message": "branch 'fix.done[0]' → 'validate' lies on a cycle; max_traversals defaulted to 10",
+        "file": "processes/process_supplier_invoice/process.yaml",
+        "loc": [
+          "edges",
+          4,
+          "to",
+          0
+        ],
+        "span": null
+      }
+    ]
+  },
+  "locked_by": null
+}

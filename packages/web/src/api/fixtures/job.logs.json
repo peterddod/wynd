@@ -1,0 +1,5 @@
+{
+  "text": "10:00:01 checkout a1b2c3d at .wynd/jobs/job_20260927T100000123_4f1c2e/checkout-1\n10:00:02 compile process_supplier_invoice: 1 of 6 steps changed (fix)\n10:01:12 fix: decision agentic (cheap, low)\n10:02:40 fix: 2/3 examples pass after revision 2\n",
+  "offset": 214,
+  "done": false
+}

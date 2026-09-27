@@ -1,0 +1,11 @@
+{
+  "turn_id": "turn_3",
+  "item": {
+    "id": "it_9",
+    "seq": 9,
+    "type": "user",
+    "created_at": "2026-09-27T09:20:00Z",
+    "text": "Only email finance for totals over 10,000",
+    "acting_on": "process_supplier_invoice"
+  }
+}

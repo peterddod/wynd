@@ -1,0 +1,120 @@
+{
+  "chat": {
+    "id": "chat_20260927T090500000_5e6f70",
+    "title": "Add a step that emails finance when escalating",
+    "created_at": "2026-09-27T09:05:00Z",
+    "updated_at": "2026-09-27T09:12:31Z",
+    "running_turn": null,
+    "job": null,
+    "usage_totals": {
+      "input_tokens": 15210,
+      "output_tokens": 1822,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.071,
+      "latency_ms": 21400.0,
+      "calls": 2
+    }
+  },
+  "items": [
+    {
+      "id": "it_1",
+      "seq": 1,
+      "type": "user",
+      "created_at": "2026-09-27T09:05:10Z",
+      "text": "Add a step that emails the finance team when an invoice is escalated",
+      "acting_on": "process_supplier_invoice"
+    },
+    {
+      "id": "it_2",
+      "seq": 2,
+      "type": "assistant",
+      "created_at": "2026-09-27T09:05:11Z",
+      "turn_id": "turn_1",
+      "text": "I'll add a `notify_finance` step after `escalate` and route `escalate.done` through it.",
+      "status": "done",
+      "error": null,
+      "usage": {
+        "input_tokens": 9800,
+        "output_tokens": 1210,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cost_usd": 0.046,
+        "latency_ms": 14100.0,
+        "calls": 1
+      }
+    },
+    {
+      "id": "it_3",
+      "seq": 3,
+      "type": "tool",
+      "created_at": "2026-09-27T09:05:12Z",
+      "turn_id": "turn_1",
+      "tool": "read_design",
+      "args": {
+        "process_id": "process_supplier_invoice"
+      },
+      "write": false,
+      "acting_on": "process_supplier_invoice",
+      "status": "ok",
+      "summary": "process_supplier_invoice: 6 steps, 7 edges",
+      "duration_ms": 41.0
+    },
+    {
+      "id": "it_4",
+      "seq": 4,
+      "type": "tool",
+      "created_at": "2026-09-27T09:05:19Z",
+      "turn_id": "turn_1",
+      "tool": "edit_design",
+      "args": {
+        "op": "add_step",
+        "name": "notify_finance",
+        "use": "./steps/notify_finance"
+      },
+      "write": true,
+      "acting_on": "process_supplier_invoice",
+      "status": "ok",
+      "summary": "Added step notify_finance (./steps/notify_finance) and routed escalate.done → notify_finance",
+      "duration_ms": 38.0
+    },
+    {
+      "id": "it_5",
+      "seq": 5,
+      "type": "commit",
+      "created_at": "2026-09-27T09:05:24Z",
+      "turn_id": "turn_1",
+      "process_id": "process_supplier_invoice",
+      "sha": "b4d2e19a0c3f5e7d9b1a2c4e6f8a0b2c4d6e8f0a",
+      "message": "design(process_supplier_invoice): add step notify_finance"
+    },
+    {
+      "id": "it_6",
+      "seq": 6,
+      "type": "user",
+      "created_at": "2026-09-27T09:12:20Z",
+      "text": "Which processes use the fix_fields step?",
+      "acting_on": null
+    },
+    {
+      "id": "it_7",
+      "seq": 7,
+      "type": "assistant",
+      "created_at": "2026-09-27T09:12:21Z",
+      "turn_id": "turn_2",
+      "text": "",
+      "status": "error",
+      "error": "Claude Code is not logged in. Run `claude` or set CLAUDE_CODE_OAUTH_TOKEN.",
+      "usage": null
+    },
+    {
+      "id": "it_8",
+      "seq": 8,
+      "type": "notice",
+      "created_at": "2026-09-27T09:12:31Z",
+      "level": "warning",
+      "text": "The assistant could not answer: the claude-code provider is not ready."
+    }
+  ],
+  "cursor": 14
+}

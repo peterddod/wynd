@@ -2106,7 +2106,8 @@ Owners from sub-wave 9b (files per `$DRAFTS/07 §16`; stubs transferred from WEB
 `SchemaForm` using GRAPH's `ValueInput`, OPS's `ProcessActions` calling `state/design.ts`, the header opening
 `RegistriesDialog`) resolve against the stubs' exported names and props. Each owner appends CSS under its prefix in a
 file it owns: `src/styles/{app,graph,chat,ops}.css` (WEB-CORE imports all four). A unit's Accept is
-`npm --prefix packages/web exec -- vitest run <its own test files>`; whole-project `typecheck`, `test`, `check` and
+`npm --prefix packages/web run test -- <its own test files, relative to packages/web>` (not `npm exec -- vitest
+run`, which runs from the repo root and never loads `vite.config.ts`); whole-project `typecheck`, `test`, `check` and
 `build` (which writes `web_dist`) run only in M4-INT. Scripts: `dev`, `build`, `typecheck`, `test`, `check`.
 
 ---
@@ -2423,7 +2424,7 @@ recompiles only that step). Record wall time and cost from the compile report.
 |---|---|---|---|---|
 | **CTL-API** | controller `api/*.py` (incl. `__init__.py`; `models_web.py` transferred from W0); tests `$C/test_api_*.py`, `$C/{test_web_contract,test_static_mount}.py` | controller (+ fastapi, uvicorn, httpx) | §3.21 | `uv run pytest $C/test_api_*.py $C/{test_web_contract,test_static_mount}.py` |
 | **CLI-M4** | cli `commands/{api,release,search}.py`; tests `packages/cli/tests/test_m4_cmds.py` | controller | §9 M4 rows | `uv run pytest packages/cli/tests/test_m4_cmds.py` |
-| **WEB-CORE**, **WEB-GRAPH**, **WEB-CHAT**, **WEB-OPS** | §10 owner lists (+ colocated `*.test.ts(x)` of their files) | HTTP contract only | §10 | `npm --prefix packages/web exec -- vitest run <the unit's own test files>` (no `npm ci`, no whole-project checks) |
+| **WEB-CORE**, **WEB-GRAPH**, **WEB-CHAT**, **WEB-OPS** | §10 owner lists (+ colocated `*.test.ts(x)` of their files) | HTTP contract only | §10 | `npm --prefix packages/web run test -- <the unit's own test files, relative to packages/web>` (no `npm ci`, no whole-project checks) |
 
 ### Wave 10 — **M4-INT** (alone)
 Accept (SPEC §12 M4): `npm --prefix packages/web run check` and `npm --prefix packages/web run build` (whole project,
@@ -2778,3 +2779,12 @@ resolved differently from the reviewer's suggested fix, with the reason.
   does not count as shown for another. Not changed: interactive corrections (`_correction`) skip that rule, since the
   human's answer supplies the outputs. Rerun live after the change: compile wall 534 s, cost $1.65, 19 calls; whole
   test 679 s.
+- **W9a close-out:** (1) The 9b web unit Accept is `npm --prefix packages/web run test -- <files>` (§10, §14):
+  `npm exec -- vitest run` runs from the repo root, never loads `vite.config.ts` (no jsdom, no setup file) and fails
+  7 of the 26 harness tests. (2) CTL-REL deviations accepted: disabling a release does not revalidate it, so a
+  release whose build or trigger has become invalid can still be turned off; a release's container gets
+  `WYND_REGISTRY_JSON` from the registry snapshot at the release's commit, not `EnvService.resolve_image` (which
+  reads the working tree, so a half-edited `process.yaml` would break firing a built release). (3) Not changed:
+  `dump_yaml` still quotes date-like strings. `WyndLoader` keeps YAML's timestamp resolver, the JSON round trip is
+  already lossless (`test_design_roundtrip.py`), and dumping them plain would turn a quoted date-like string in a
+  `str` model field into a `date` on reload.

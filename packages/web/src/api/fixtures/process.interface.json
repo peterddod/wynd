@@ -1,0 +1,122 @@
+{
+  "commit": "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432",
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "pdf_path": {
+        "type": "string",
+        "format": "path"
+      }
+    },
+    "required": [
+      "pdf_path"
+    ],
+    "additionalProperties": false
+  },
+  "outputs": {
+    "done": {
+      "type": "object",
+      "properties": {
+        "exit": {
+          "const": "done"
+        },
+        "record": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "exit",
+        "record"
+      ],
+      "additionalProperties": false
+    },
+    "not_an_invoice": {
+      "type": "object",
+      "properties": {
+        "exit": {
+          "const": "not_an_invoice"
+        }
+      },
+      "required": [
+        "exit"
+      ],
+      "additionalProperties": false
+    },
+    "needs_review": {
+      "type": "object",
+      "properties": {
+        "exit": {
+          "const": "needs_review"
+        }
+      },
+      "required": [
+        "exit"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "inputs": {
+        "pdf_path": "examples/acme_inv_1042.pdf"
+      },
+      "outputs": {
+        "record": {
+          "key": "acme-supplies-ltd__INV-1042",
+          "supplier": "ACME Supplies Ltd",
+          "invoice_number": "INV-1042",
+          "total": 1200.5,
+          "currency": "GBP",
+          "due_date": "2026-10-01"
+        }
+      },
+      "exit": "done"
+    },
+    {
+      "inputs": {
+        "pdf_path": "examples/globex_inv_77810.pdf"
+      },
+      "outputs": {
+        "record": {
+          "key": "globex-corporation__GX-77810",
+          "supplier": "Globex Corporation",
+          "invoice_number": "GX-77810",
+          "total": 14250.0,
+          "currency": "USD",
+          "due_date": "2026-11-15"
+        }
+      },
+      "exit": "done"
+    },
+    {
+      "inputs": {
+        "pdf_path": "examples/initech_inv_5521.pdf"
+      },
+      "outputs": {
+        "record": {
+          "key": "initech-canada-inc__IC-5521",
+          "supplier": "Initech Canada Inc.",
+          "invoice_number": "IC-5521",
+          "total": 980.0,
+          "currency": "CAD",
+          "due_date": "2026-10-20"
+        }
+      },
+      "exit": "done"
+    },
+    {
+      "inputs": {
+        "pdf_path": "examples/shipping_notice.pdf"
+      },
+      "outputs": {},
+      "exit": "not_an_invoice"
+    },
+    {
+      "inputs": {
+        "pdf_path": "examples/hooli_credit_note_311.pdf"
+      },
+      "outputs": {},
+      "exit": "needs_review"
+    }
+  ]
+}

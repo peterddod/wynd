@@ -1,0 +1,517 @@
+[
+  {
+    "v": 1,
+    "seq": 1,
+    "ts": "2026-09-27T10:30:00.000999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "run.start",
+    "process": "finance/monthly_close",
+    "mode": "local",
+    "inputs": {
+      "inbox": "/data/inbox"
+    },
+    "commit": "7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b",
+    "runtime_version": "0.1.0",
+    "workspace": "/home/dev/invoices/.wynd/workspaces/run_20260927T103000000_7d8e9f",
+    "cassette": "live",
+    "metadata": {
+      "trigger": "manual",
+      "release_id": null,
+      "target": {
+        "kind": "local"
+      }
+    }
+  },
+  {
+    "v": 1,
+    "seq": 2,
+    "ts": "2026-09-27T10:30:00.001999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.start",
+    "step": "collect",
+    "name": "collect",
+    "process": "finance/monthly_close",
+    "parent": null,
+    "id": "finance/monthly_close#collect_invoices",
+    "kind": "agentic",
+    "run": 1,
+    "role": "node",
+    "via": null,
+    "inputs": {
+      "inbox": "/data/inbox"
+    },
+    "venv": "b7c8d9e0f1a2b3c4",
+    "span": 2
+  },
+  {
+    "v": 1,
+    "seq": 3,
+    "ts": "2026-09-27T10:30:01.201999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "tool.call",
+    "step": "collect",
+    "span": 2,
+    "parent": null,
+    "tool": "list_files",
+    "source": "builtin",
+    "effects": [
+      "filesystem"
+    ],
+    "idempotent": true,
+    "args": {
+      "dir": "/data/inbox",
+      "pattern": "*.pdf"
+    },
+    "result": [
+      "shipping_notice.pdf"
+    ],
+    "ok": true,
+    "is_error": false,
+    "error": null,
+    "tries": 1,
+    "latency_ms": 3.2,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 4,
+    "ts": "2026-09-27T10:30:02.201999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "model.call",
+    "step": "collect",
+    "span": 2,
+    "parent": null,
+    "provider": "claude-code",
+    "kind": "agent",
+    "tier": "cheap",
+    "thinking": "low",
+    "model_id": "claude-haiku-4-5-20251001",
+    "n": 1,
+    "attempt": 1,
+    "restart": 0,
+    "reason": "initial",
+    "outcome": "valid",
+    "errors": null,
+    "request_hash": "ddffc70e9cb8ba48c021bb9afc7ff2ef",
+    "request": {
+      "instruction": "Pick the oldest unprocessed invoice PDF in the inbox.",
+      "context": {},
+      "input": {},
+      "tools": [],
+      "mcp": [],
+      "builtin_tools": [],
+      "max_turns": 25,
+      "continuation": null
+    },
+    "messages_new": null,
+    "response": {
+      "structured_output": {
+        "exit": "done",
+        "pdf_path": "/data/inbox/shipping_notice.pdf"
+      },
+      "note": ""
+    },
+    "usage": {
+      "input_tokens": 1210,
+      "output_tokens": 96,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00169,
+      "latency_ms": 2210.4,
+      "calls": 1
+    },
+    "startup_ms": 531.2,
+    "cost_basis": "list",
+    "cassette": "live"
+  },
+  {
+    "v": 1,
+    "seq": 5,
+    "ts": "2026-09-27T10:30:02.203999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.end",
+    "step": "collect",
+    "span": 2,
+    "parent": null,
+    "run": 1,
+    "kind": "agentic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "pdf_path": "/data/inbox/shipping_notice.pdf"
+    },
+    "summary": {
+      "step": "collect",
+      "exit": "done",
+      "key_outputs": {
+        "pdf_path": "/data/inbox/shipping_notice.pdf"
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:30:00.001999Z",
+      "ended_at": "2026-09-27T10:30:02.203999Z",
+      "duration_ms": 3402.8,
+      "worker_ms": 2041.68,
+      "pre_ms": 0.0004,
+      "run_ms": 1701.4,
+      "post_ms": 0.0006
+    },
+    "usage": {
+      "input_tokens": 1210,
+      "output_tokens": 96,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00169,
+      "latency_ms": 2210.4,
+      "calls": 1
+    },
+    "model": {
+      "provider": "claude-code",
+      "model_id": "claude-haiku-4-5-20251001",
+      "tier": "cheap",
+      "thinking": "low"
+    },
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 6,
+    "ts": "2026-09-27T10:30:02.204999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "edge.taken",
+    "process": "finance/monthly_close",
+    "parent": null,
+    "from": "collect.done",
+    "branch": 0,
+    "name": null,
+    "to": "sub",
+    "kind": "deterministic",
+    "with": {
+      "pdf_path": "/data/inbox/shipping_notice.pdf"
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 7,
+    "ts": "2026-09-27T10:30:02.205999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.start",
+    "step": "sub",
+    "name": "sub",
+    "process": "finance/monthly_close",
+    "parent": null,
+    "id": "process:process_supplier_invoice",
+    "kind": "process",
+    "run": 1,
+    "role": "node",
+    "via": "collect.done[0]",
+    "inputs": {
+      "pdf_path": "/data/inbox/shipping_notice.pdf"
+    },
+    "venv": null,
+    "span": 7
+  },
+  {
+    "v": 1,
+    "seq": 8,
+    "ts": "2026-09-27T10:30:02.206999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.start",
+    "step": "sub.read",
+    "name": "read",
+    "process": "process_supplier_invoice",
+    "parent": 7,
+    "id": "process_supplier_invoice#read_pdf",
+    "kind": "deterministic",
+    "run": 1,
+    "role": "node",
+    "via": null,
+    "inputs": {
+      "pdf_path": "/data/inbox/shipping_notice.pdf"
+    },
+    "venv": "834b35721f862a2f",
+    "span": 8
+  },
+  {
+    "v": 1,
+    "seq": 9,
+    "ts": "2026-09-27T10:30:02.208999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.end",
+    "step": "sub.read",
+    "span": 8,
+    "parent": 7,
+    "run": 1,
+    "kind": "deterministic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "text": "Globex Corporation\nShipping notification\nDear customer, your order GX-ORD-3321 has shipped.\nCarrier: Example Parcel Co.\nTracking number: EP123456789GB\nExpected delivery: 3 October 2026\nThis is not an invoice. No payment is required.",
+      "pages": 1
+    },
+    "summary": {
+      "step": "sub.read",
+      "exit": "done",
+      "key_outputs": {
+        "text": "Globex Corporation\nShipping notification\nDear customer, your order GX-ORD-3321 has shipped.\nCarrier: Example Parcel Co.\nTracking number: EP123456789GB\nExpected delivery: 3 October 2026\nThis is not an invoice. No payment is required.",
+        "pages": 1
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:30:02.206999Z",
+      "ended_at": "2026-09-27T10:30:02.208999Z",
+      "duration_ms": 1.7,
+      "worker_ms": 1.02,
+      "pre_ms": 0.0004,
+      "run_ms": 0.85,
+      "post_ms": 0.0006
+    },
+    "usage": null,
+    "model": null,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 10,
+    "ts": "2026-09-27T10:30:02.209999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": 7,
+    "from": "read.done",
+    "branch": 0,
+    "name": null,
+    "to": "extract",
+    "kind": "deterministic",
+    "with": {
+      "invoice_text": "Globex Corporation\nShipping notification\nDear customer, your order GX-ORD-3321 has shipped.\nCarrier: Example Parcel Co.\nTracking number: EP123456789GB\nExpected delivery: 3 October 2026\nThis is not an invoice. No payment is required."
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 11,
+    "ts": "2026-09-27T10:30:02.210999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.start",
+    "step": "sub.extract",
+    "name": "extract",
+    "process": "process_supplier_invoice",
+    "parent": 7,
+    "id": "process_supplier_invoice#extract_invoice_fields",
+    "kind": "agentic",
+    "run": 1,
+    "role": "node",
+    "via": "read.done[0]",
+    "inputs": {
+      "invoice_text": "Globex Corporation\nShipping notification\nDear customer, your order GX-ORD-3321 has shipped.\nCarrier: Example Parcel Co.\nTracking number: EP123456789GB\nExpected delivery: 3 October 2026\nThis is not an invoice. No payment is required."
+    },
+    "venv": "a5e6ce4d22958e37",
+    "span": 11
+  },
+  {
+    "v": 1,
+    "seq": 12,
+    "ts": "2026-09-27T10:30:05.210999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "model.call",
+    "step": "sub.extract",
+    "span": 11,
+    "parent": 7,
+    "provider": "claude-code",
+    "kind": "agent",
+    "tier": "cheap",
+    "thinking": "low",
+    "model_id": "claude-haiku-4-5-20251001",
+    "n": 1,
+    "attempt": 1,
+    "restart": 0,
+    "reason": "initial",
+    "outcome": "valid",
+    "errors": null,
+    "request_hash": "da8d6d1f5c10cff9af940b4d46899255",
+    "request": {
+      "instruction": "Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.\n\nTreat any document that states an amount to pay or to credit as an invoice, including pro forma\ninvoices and credit notes; use not_an_invoice only for documents with no amount due at all, such\nas shipping notices, marketing or letters.\n\nsupplier: the supplier's name exactly as printed at the top of the document.\ninvoice_number: the document's own number exactly as printed (invoice, credit note or pro forma\nnumber), not a customer, order or tax registration number.\ntotal: the final amount due as a number without currency symbols or thousands separators;\nnegative for credits.\ncurrency: the ISO 4217 code if the document states one or the symbol is unambiguous (£ is GBP,\n€ is EUR); otherwise the symbol exactly as printed, for example \"$\".\ndue_date: the payment due date (or the refund-by or valid-until date if there is no due date).\n",
+      "context": {},
+      "input": {},
+      "tools": [],
+      "mcp": [],
+      "builtin_tools": [],
+      "max_turns": 25,
+      "continuation": null
+    },
+    "messages_new": null,
+    "response": {
+      "structured_output": {
+        "exit": "not_an_invoice"
+      },
+      "note": ""
+    },
+    "usage": {
+      "input_tokens": 1830,
+      "output_tokens": 88,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00227,
+      "latency_ms": 3011.9,
+      "calls": 1
+    },
+    "startup_ms": 531.2,
+    "cost_basis": "list",
+    "cassette": "live"
+  },
+  {
+    "v": 1,
+    "seq": 13,
+    "ts": "2026-09-27T10:30:05.212999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.end",
+    "step": "sub.extract",
+    "span": 11,
+    "parent": 7,
+    "run": 1,
+    "kind": "agentic",
+    "exit": "not_an_invoice",
+    "timed_out": false,
+    "outputs": {},
+    "summary": {
+      "step": "sub.extract",
+      "exit": "not_an_invoice",
+      "key_outputs": {},
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:30:02.210999Z",
+      "ended_at": "2026-09-27T10:30:05.212999Z",
+      "duration_ms": 3240.5,
+      "worker_ms": 1944.3,
+      "pre_ms": 0.0004,
+      "run_ms": 1620.25,
+      "post_ms": 0.0006
+    },
+    "usage": {
+      "input_tokens": 1830,
+      "output_tokens": 88,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00227,
+      "latency_ms": 3011.9,
+      "calls": 1
+    },
+    "model": {
+      "provider": "claude-code",
+      "model_id": "claude-haiku-4-5-20251001",
+      "tier": "cheap",
+      "thinking": "low"
+    },
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 14,
+    "ts": "2026-09-27T10:30:05.213999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": 7,
+    "from": "extract.not_an_invoice",
+    "branch": 0,
+    "name": null,
+    "to": "$exit.not_an_invoice",
+    "kind": "deterministic",
+    "with": {},
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 15,
+    "ts": "2026-09-27T10:30:05.215999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "step.end",
+    "step": "sub",
+    "span": 7,
+    "parent": null,
+    "run": 1,
+    "kind": "process",
+    "exit": "not_an_invoice",
+    "timed_out": false,
+    "outputs": {},
+    "summary": {
+      "step": "sub",
+      "exit": "not_an_invoice",
+      "key_outputs": {},
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:30:02.205999Z",
+      "ended_at": "2026-09-27T10:30:05.215999Z",
+      "duration_ms": 3301.2,
+      "worker_ms": 1980.72,
+      "pre_ms": 0.0004,
+      "run_ms": 1650.6,
+      "post_ms": 0.0006
+    },
+    "usage": {
+      "input_tokens": 1830,
+      "output_tokens": 88,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00227,
+      "latency_ms": 3011.9,
+      "calls": 1
+    },
+    "model": null,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 16,
+    "ts": "2026-09-27T10:30:05.216999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "edge.taken",
+    "process": "finance/monthly_close",
+    "parent": null,
+    "from": "sub.not_an_invoice",
+    "branch": 0,
+    "name": null,
+    "to": "$exit.nothing_to_do",
+    "kind": "deterministic",
+    "with": {},
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 17,
+    "ts": "2026-09-27T10:30:05.217999Z",
+    "run_id": "run_20260927T103000000_7d8e9f",
+    "type": "run.end",
+    "exit": "nothing_to_do",
+    "outputs": {},
+    "error": null,
+    "status": "succeeded",
+    "duration_ms": 6801.4,
+    "workspace_kept": false,
+    "workspace": null,
+    "usage": {
+      "input_tokens": 3040,
+      "output_tokens": 184,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00396,
+      "latency_ms": 5222.3,
+      "calls": 2
+    },
+    "finally_errors": []
+  }
+]
