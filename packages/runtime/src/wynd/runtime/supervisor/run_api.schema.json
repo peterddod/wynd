@@ -1,0 +1,481 @@
+{
+  "$defs": {
+    "ErrorBody": {
+      "properties": {
+        "error": {
+          "additionalProperties": true,
+          "title": "Error",
+          "type": "object"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "title": "ErrorBody",
+      "type": "object"
+    },
+    "FileUpload": {
+      "additionalProperties": false,
+      "properties": {
+        "content_base64": {
+          "title": "Content Base64",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_base64"
+      ],
+      "title": "FileUpload",
+      "type": "object"
+    },
+    "Links": {
+      "properties": {
+        "events": {
+          "title": "Events",
+          "type": "string"
+        },
+        "outputs": {
+          "title": "Outputs",
+          "type": "string"
+        },
+        "self": {
+          "title": "Self",
+          "type": "string"
+        }
+      },
+      "required": [
+        "self",
+        "events",
+        "outputs"
+      ],
+      "title": "Links",
+      "type": "object"
+    },
+    "ProcessInfo": {
+      "properties": {
+        "api_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Api Version",
+          "type": "string"
+        },
+        "commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Commit"
+        },
+        "goal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Goal"
+        },
+        "inputs_schema": {
+          "additionalProperties": true,
+          "title": "Inputs Schema",
+          "type": "object"
+        },
+        "limits": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Limits",
+          "type": "object"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "outputs_schema": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Outputs Schema",
+          "type": "object"
+        },
+        "process": {
+          "title": "Process",
+          "type": "string"
+        },
+        "runtime_version": {
+          "title": "Runtime Version",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "process",
+        "name",
+        "goal",
+        "commit",
+        "runtime_version",
+        "inputs_schema",
+        "outputs_schema",
+        "steps",
+        "limits"
+      ],
+      "title": "ProcessInfo",
+      "type": "object"
+    },
+    "Run": {
+      "properties": {
+        "api_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Api Version",
+          "type": "string"
+        },
+        "commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Commit"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Duration Ms"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "exit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Exit"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "links": {
+          "$ref": "#/$defs/Links"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "mode": {
+          "enum": [
+            "image",
+            "local"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "outputs": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Outputs"
+        },
+        "process": {
+          "title": "Process",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "runtime_version": {
+          "title": "Runtime Version",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Started At"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "usage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UsageTotals"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "run_id",
+        "process",
+        "commit",
+        "runtime_version",
+        "mode",
+        "status",
+        "exit",
+        "outputs",
+        "error",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "duration_ms",
+        "usage",
+        "metadata",
+        "links"
+      ],
+      "title": "Run",
+      "type": "object"
+    },
+    "RunCreated": {
+      "properties": {
+        "links": {
+          "$ref": "#/$defs/Links"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "status",
+        "links"
+      ],
+      "title": "RunCreated",
+      "type": "object"
+    },
+    "RunRequest": {
+      "additionalProperties": false,
+      "description": "`{inputs, run_id?, files: {name: {content_base64}}, metadata}`; input values may be `{\"$file\": name}`.",
+      "properties": {
+        "files": {
+          "additionalProperties": {
+            "$ref": "#/$defs/FileUpload"
+          },
+          "default": {},
+          "title": "Files",
+          "type": "object"
+        },
+        "inputs": {
+          "additionalProperties": true,
+          "title": "Inputs",
+          "type": "object"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Metadata",
+          "type": "object"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        }
+      },
+      "required": [
+        "inputs"
+      ],
+      "title": "RunRequest",
+      "type": "object"
+    },
+    "RunSummary": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "exit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Exit"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "status",
+        "exit",
+        "created_at",
+        "finished_at"
+      ],
+      "title": "RunSummary",
+      "type": "object"
+    },
+    "UsageTotals": {
+      "properties": {
+        "cache_read_tokens": {
+          "title": "Cache Read Tokens",
+          "type": "integer"
+        },
+        "cache_write_tokens": {
+          "title": "Cache Write Tokens",
+          "type": "integer"
+        },
+        "calls": {
+          "title": "Calls",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cost Usd"
+        },
+        "input_tokens": {
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "latency_ms": {
+          "title": "Latency Ms",
+          "type": "number"
+        },
+        "output_tokens": {
+          "title": "Output Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens",
+        "cache_read_tokens",
+        "cache_write_tokens",
+        "cost_usd",
+        "latency_ms",
+        "calls"
+      ],
+      "title": "UsageTotals",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "api_version": "1",
+  "title": "Wynd run API v1"
+}

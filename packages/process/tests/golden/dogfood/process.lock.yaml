@@ -1,0 +1,967 @@
+wynd: 1
+process: process_supplier_invoice
+commit: 9f1c0a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f
+source_sha: 9f1c0a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f
+process_hash: sha256:0fef2ae912941da913776bc4a36e178c4bdea6e8c8c5dc1e950d4bd6347bafd8
+runtime_version: 0.1.0
+platform: linux/arm64
+base:
+  requested: debian-slim-python
+  variant: slim
+  version: 0.1.0
+  image: wynd-base:0.1.0-slim
+system_packages: []
+fragments:
+- source: step:process_supplier_invoice#escalate_to_human
+  deps: []
+  system: []
+  requires: null
+- source: step:process_supplier_invoice#extract_invoice_fields
+  deps: []
+  system: []
+  requires: null
+- source: step:process_supplier_invoice#fix_fields
+  deps: []
+  system: []
+  requires: null
+- source: step:process_supplier_invoice#read_pdf
+  deps:
+  - pypdf>=6,<7
+  system: []
+  requires: null
+- source: step:process_supplier_invoice#save_record
+  deps: []
+  system: []
+  requires: null
+- source: step:process_supplier_invoice#validate_fields
+  deps: []
+  system: []
+  requires: null
+- source: provider:claude-code
+  deps:
+  - claude-agent-sdk>=0.2.157,<0.3
+  system: []
+  requires: glibc
+wheels:
+  process_supplier_invoice#escalate_to_human:
+    dir: processes/process_supplier_invoice/steps/escalate_to_human
+    hash: sha256:a07c5b60c7eb4307e57f3aed44169086f5a7a9f5257f596c153f32e8be287c34
+    wheel: dist/wynd_step_escalate_to_human_164f7c1560-0.1.0-py3-none-any.whl
+  process_supplier_invoice#extract_invoice_fields:
+    dir: processes/process_supplier_invoice/steps/extract_invoice_fields
+    hash: sha256:3c7834de89ed611b7cfecdeaa4e586f1a9b48758c9088c29319f0f9885dfe744
+    wheel: dist/wynd_step_extract_invoice_fields_b927bf04e5-0.1.0-py3-none-any.whl
+  process_supplier_invoice#fix_fields:
+    dir: processes/process_supplier_invoice/steps/fix_fields
+    hash: sha256:fc5348e3fa1cdab3d08a38ed46e60bd3a02086e0b0a02fe883e20cebacab76c8
+    wheel: dist/wynd_step_fix_fields_3a21319ac4-0.1.0-py3-none-any.whl
+  process_supplier_invoice#read_pdf:
+    dir: processes/process_supplier_invoice/steps/read_pdf
+    hash: sha256:f8bfd0f43cbf99aacb253bcc1c2dd5b812e90ce7380a7485b8f1258a4cf8dc4a
+    wheel: dist/wynd_step_read_pdf_063fa89e61-0.1.0-py3-none-any.whl
+  process_supplier_invoice#save_record:
+    dir: processes/process_supplier_invoice/steps/save_record
+    hash: sha256:4f27784f39cbfb252f80dfb21404f19c5435567013709b9908051d63585b0493
+    wheel: dist/wynd_step_save_record_69a8642fc0-0.1.0-py3-none-any.whl
+  process_supplier_invoice#validate_fields:
+    dir: processes/process_supplier_invoice/steps/validate_fields
+    hash: sha256:2ea03a9a85b3e57ab13219e644ded5787028e53f375169d266769e24be5ec196
+    wheel: dist/wynd_step_validate_fields_5288b99653-0.1.0-py3-none-any.whl
+venvs:
+- id: 6c39ccbb9800c484
+  inputs: []
+  requirements:
+  - wynd-runtime==0.1.0
+  - wynd-spec==0.1.0
+- id: 740e30524c932951
+  inputs:
+  - claude-agent-sdk>=0.2.157,<0.3
+  requirements:
+  - claude-agent-sdk==1.0.0
+  - wynd-runtime==0.1.0
+  - wynd-spec==0.1.0
+- id: b828bc934245e9ea
+  inputs:
+  - pypdf==6.19.0
+  requirements:
+  - pypdf==6.19.0
+  - wynd-runtime==0.1.0
+  - wynd-spec==0.1.0
+plan:
+  wynd: 1
+  mode: image
+  root: process_supplier_invoice
+  commit: 9f1c0a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f
+  provider: claude-code
+  venv_root: /opt/wynd/venvs
+  venvs:
+  - id: 6c39ccbb9800c484
+    steps:
+    - process_supplier_invoice#escalate_to_human
+    - process_supplier_invoice#save_record
+    - process_supplier_invoice#validate_fields
+  - id: 740e30524c932951
+    steps:
+    - process_supplier_invoice#extract_invoice_fields
+    - process_supplier_invoice#fix_fields
+  - id: b828bc934245e9ea
+    steps:
+    - process_supplier_invoice#read_pdf
+  steps:
+    process_supplier_invoice#escalate_to_human:
+      id: process_supplier_invoice#escalate_to_human
+      kind: deterministic
+      entrypoint: escalate_to_human:EscalateToHuman
+      venv: 6c39ccbb9800c484
+      package_dir: null
+      lock:
+        wynd: 1
+        name: escalate_to_human
+        kind: deterministic
+        entrypoint: escalate_to_human:EscalateToHuman
+        proto_hash: sha256:a154c6b8de07b979395c20754b187c6215349dcd112b091c30058cfddc167677
+        builtin_tools: []
+        retries:
+          run: 0
+          validation: 0
+          tool: 0
+        effects:
+        - filesystem
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+        interface:
+          input:
+            $defs:
+              FieldError:
+                properties:
+                  field:
+                    title: Field
+                    type: string
+                  code:
+                    title: Code
+                    type: string
+                  message:
+                    title: Message
+                    type: string
+                  fixable:
+                    title: Fixable
+                    type: boolean
+                required:
+                - field
+                - code
+                - message
+                - fixable
+                title: FieldError
+                type: object
+              InvoiceFields:
+                properties:
+                  supplier:
+                    title: Supplier
+                    type: string
+                  invoice_number:
+                    title: Invoice Number
+                    type: string
+                  total:
+                    title: Total
+                    type: number
+                  currency:
+                    title: Currency
+                    type: string
+                  due_date:
+                    format: date
+                    title: Due Date
+                    type: string
+                required:
+                - supplier
+                - invoice_number
+                - total
+                - currency
+                - due_date
+                title: InvoiceFields
+                type: object
+            properties:
+              fields:
+                $ref: '#/$defs/InvoiceFields'
+              errors:
+                items:
+                  $ref: '#/$defs/FieldError'
+                title: Errors
+                type: array
+              queue_dir:
+                format: path
+                title: Queue Dir
+                type: string
+              run_id:
+                title: Run Id
+                type: string
+            required:
+            - fields
+            - errors
+            - queue_dir
+            - run_id
+            title: Input
+            type: object
+          outputs:
+            done:
+              properties:
+                exit:
+                  const: done
+                  default: done
+                  title: Exit
+                  type: string
+                ticket_path:
+                  format: path
+                  title: Ticket Path
+                  type: string
+              required:
+              - ticket_path
+              title: Output
+              type: object
+    process_supplier_invoice#extract_invoice_fields:
+      id: process_supplier_invoice#extract_invoice_fields
+      kind: agentic
+      entrypoint: extract_invoice_fields:ExtractInvoiceFields
+      venv: 740e30524c932951
+      package_dir: null
+      lock:
+        wynd: 1
+        name: extract_invoice_fields
+        kind: agentic
+        entrypoint: extract_invoice_fields:ExtractInvoiceFields
+        proto_hash: sha256:ba392c818983a87031ea23052161c5d039c62e6e2fe6993d750b60439381546e
+        tier: cheap
+        thinking: low
+        builtin_tools: []
+        retries:
+          run: 2
+          validation: 2
+          tool: 1
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+        interface:
+          input:
+            properties:
+              invoice_text:
+                title: Invoice Text
+                type: string
+            required:
+            - invoice_text
+            title: Input
+            type: object
+          outputs:
+            done:
+              properties:
+                exit:
+                  const: done
+                  default: done
+                  title: Exit
+                  type: string
+                supplier:
+                  title: Supplier
+                  type: string
+                invoice_number:
+                  title: Invoice Number
+                  type: string
+                total:
+                  title: Total
+                  type: number
+                currency:
+                  title: Currency
+                  type: string
+                due_date:
+                  format: date
+                  title: Due Date
+                  type: string
+              required:
+              - supplier
+              - invoice_number
+              - total
+              - currency
+              - due_date
+              title: Done
+              type: object
+            not_an_invoice:
+              properties:
+                exit:
+                  const: not_an_invoice
+                  default: not_an_invoice
+                  title: Exit
+                  type: string
+              title: NotAnInvoice
+              type: object
+    process_supplier_invoice#fix_fields:
+      id: process_supplier_invoice#fix_fields
+      kind: agentic
+      entrypoint: fix_fields:FixFields
+      venv: 740e30524c932951
+      package_dir: null
+      lock:
+        wynd: 1
+        name: fix_fields
+        kind: agentic
+        entrypoint: fix_fields:FixFields
+        proto_hash: sha256:c97dcae887453bdd99743f50838673fbc2b36e1b5885865982642bfb4b1d71e9
+        tier: cheap
+        thinking: low
+        builtin_tools: []
+        retries:
+          run: 2
+          validation: 2
+          tool: 1
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+        interface:
+          input:
+            $defs:
+              FieldError:
+                properties:
+                  field:
+                    title: Field
+                    type: string
+                  code:
+                    title: Code
+                    type: string
+                  message:
+                    title: Message
+                    type: string
+                  fixable:
+                    title: Fixable
+                    type: boolean
+                required:
+                - field
+                - code
+                - message
+                - fixable
+                title: FieldError
+                type: object
+              InvoiceFields:
+                properties:
+                  supplier:
+                    title: Supplier
+                    type: string
+                  invoice_number:
+                    title: Invoice Number
+                    type: string
+                  total:
+                    title: Total
+                    type: number
+                  currency:
+                    title: Currency
+                    type: string
+                  due_date:
+                    format: date
+                    title: Due Date
+                    type: string
+                required:
+                - supplier
+                - invoice_number
+                - total
+                - currency
+                - due_date
+                title: InvoiceFields
+                type: object
+            properties:
+              invoice_text:
+                title: Invoice Text
+                type: string
+              fields:
+                $ref: '#/$defs/InvoiceFields'
+              errors:
+                items:
+                  $ref: '#/$defs/FieldError'
+                title: Errors
+                type: array
+            required:
+            - invoice_text
+            - fields
+            - errors
+            title: Input
+            type: object
+          outputs:
+            done:
+              properties:
+                exit:
+                  const: done
+                  default: done
+                  title: Exit
+                  type: string
+                supplier:
+                  title: Supplier
+                  type: string
+                invoice_number:
+                  title: Invoice Number
+                  type: string
+                total:
+                  title: Total
+                  type: number
+                currency:
+                  title: Currency
+                  type: string
+                due_date:
+                  format: date
+                  title: Due Date
+                  type: string
+              required:
+              - supplier
+              - invoice_number
+              - total
+              - currency
+              - due_date
+              title: Output
+              type: object
+    process_supplier_invoice#read_pdf:
+      id: process_supplier_invoice#read_pdf
+      kind: deterministic
+      entrypoint: read_pdf:ReadPdf
+      venv: b828bc934245e9ea
+      package_dir: null
+      lock:
+        wynd: 1
+        name: read_pdf
+        kind: deterministic
+        entrypoint: read_pdf:ReadPdf
+        proto_hash: sha256:738b861d35c725b5a98824a60c10f2c61b6a2341d423a33646bb51e7c48e75d5
+        builtin_tools: []
+        retries:
+          run: 0
+          validation: 0
+          tool: 0
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps:
+          - pypdf>=6,<7
+          system: []
+          vars: []
+          groups: {}
+        locked_deps:
+        - pypdf==6.19.0
+        interface:
+          input:
+            properties:
+              pdf_path:
+                format: path
+                title: Pdf Path
+                type: string
+            required:
+            - pdf_path
+            title: Input
+            type: object
+          outputs:
+            done:
+              properties:
+                exit:
+                  const: done
+                  default: done
+                  title: Exit
+                  type: string
+                text:
+                  title: Text
+                  type: string
+                pages:
+                  title: Pages
+                  type: integer
+              required:
+              - text
+              - pages
+              title: Output
+              type: object
+    process_supplier_invoice#save_record:
+      id: process_supplier_invoice#save_record
+      kind: deterministic
+      entrypoint: save_record:SaveRecord
+      venv: 6c39ccbb9800c484
+      package_dir: null
+      lock:
+        wynd: 1
+        name: save_record
+        kind: deterministic
+        entrypoint: save_record:SaveRecord
+        proto_hash: sha256:3389dec23d630edb02c84a6e72f0679945cec9e4a04f3debfdaf804873fe8bfa
+        builtin_tools: []
+        retries:
+          run: 0
+          validation: 0
+          tool: 0
+        effects:
+        - filesystem
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+        interface:
+          input:
+            $defs:
+              InvoiceRecord:
+                properties:
+                  key:
+                    title: Key
+                    type: string
+                  supplier:
+                    title: Supplier
+                    type: string
+                  invoice_number:
+                    title: Invoice Number
+                    type: string
+                  total:
+                    title: Total
+                    type: number
+                  currency:
+                    title: Currency
+                    type: string
+                  due_date:
+                    format: date
+                    title: Due Date
+                    type: string
+                required:
+                - key
+                - supplier
+                - invoice_number
+                - total
+                - currency
+                - due_date
+                title: InvoiceRecord
+                type: object
+            properties:
+              record:
+                $ref: '#/$defs/InvoiceRecord'
+              dest:
+                format: path
+                title: Dest
+                type: string
+            required:
+            - record
+            - dest
+            title: Input
+            type: object
+          outputs:
+            done:
+              $defs:
+                InvoiceRecord:
+                  properties:
+                    key:
+                      title: Key
+                      type: string
+                    supplier:
+                      title: Supplier
+                      type: string
+                    invoice_number:
+                      title: Invoice Number
+                      type: string
+                    total:
+                      title: Total
+                      type: number
+                    currency:
+                      title: Currency
+                      type: string
+                    due_date:
+                      format: date
+                      title: Due Date
+                      type: string
+                  required:
+                  - key
+                  - supplier
+                  - invoice_number
+                  - total
+                  - currency
+                  - due_date
+                  title: InvoiceRecord
+                  type: object
+              properties:
+                exit:
+                  const: done
+                  default: done
+                  title: Exit
+                  type: string
+                record:
+                  $ref: '#/$defs/InvoiceRecord'
+                path:
+                  format: path
+                  title: Path
+                  type: string
+              required:
+              - record
+              - path
+              title: Output
+              type: object
+    process_supplier_invoice#validate_fields:
+      id: process_supplier_invoice#validate_fields
+      kind: deterministic
+      entrypoint: validate_fields:ValidateFields
+      venv: 6c39ccbb9800c484
+      package_dir: null
+      lock:
+        wynd: 1
+        name: validate_fields
+        kind: deterministic
+        entrypoint: validate_fields:ValidateFields
+        proto_hash: sha256:802b5c9dd3ce2285446b6bc84478c836e79714a789faa4cec86d6c437db3f01a
+        builtin_tools: []
+        retries:
+          run: 0
+          validation: 0
+          tool: 0
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+        interface:
+          input:
+            $defs:
+              InvoiceFields:
+                properties:
+                  supplier:
+                    title: Supplier
+                    type: string
+                  invoice_number:
+                    title: Invoice Number
+                    type: string
+                  total:
+                    title: Total
+                    type: number
+                  currency:
+                    title: Currency
+                    type: string
+                  due_date:
+                    format: date
+                    title: Due Date
+                    type: string
+                required:
+                - supplier
+                - invoice_number
+                - total
+                - currency
+                - due_date
+                title: InvoiceFields
+                type: object
+            properties:
+              fields:
+                $ref: '#/$defs/InvoiceFields'
+            required:
+            - fields
+            title: Input
+            type: object
+          outputs:
+            done:
+              $defs:
+                FieldError:
+                  properties:
+                    field:
+                      title: Field
+                      type: string
+                    code:
+                      title: Code
+                      type: string
+                    message:
+                      title: Message
+                      type: string
+                    fixable:
+                      title: Fixable
+                      type: boolean
+                  required:
+                  - field
+                  - code
+                  - message
+                  - fixable
+                  title: FieldError
+                  type: object
+                InvoiceFields:
+                  properties:
+                    supplier:
+                      title: Supplier
+                      type: string
+                    invoice_number:
+                      title: Invoice Number
+                      type: string
+                    total:
+                      title: Total
+                      type: number
+                    currency:
+                      title: Currency
+                      type: string
+                    due_date:
+                      format: date
+                      title: Due Date
+                      type: string
+                  required:
+                  - supplier
+                  - invoice_number
+                  - total
+                  - currency
+                  - due_date
+                  title: InvoiceFields
+                  type: object
+                InvoiceRecord:
+                  properties:
+                    key:
+                      title: Key
+                      type: string
+                    supplier:
+                      title: Supplier
+                      type: string
+                    invoice_number:
+                      title: Invoice Number
+                      type: string
+                    total:
+                      title: Total
+                      type: number
+                    currency:
+                      title: Currency
+                      type: string
+                    due_date:
+                      format: date
+                      title: Due Date
+                      type: string
+                  required:
+                  - key
+                  - supplier
+                  - invoice_number
+                  - total
+                  - currency
+                  - due_date
+                  title: InvoiceRecord
+                  type: object
+              properties:
+                exit:
+                  const: done
+                  default: done
+                  title: Exit
+                  type: string
+                valid:
+                  title: Valid
+                  type: boolean
+                fixable:
+                  title: Fixable
+                  type: boolean
+                errors:
+                  items:
+                    $ref: '#/$defs/FieldError'
+                  title: Errors
+                  type: array
+                fields:
+                  $ref: '#/$defs/InvoiceFields'
+                record:
+                  $ref: '#/$defs/InvoiceRecord'
+              required:
+              - valid
+              - fixable
+              - errors
+              - fields
+              - record
+              title: Output
+              type: object
+  processes:
+    process_supplier_invoice:
+      id: process_supplier_invoice
+      dir: null
+      definition:
+        kind: process
+        name: process_supplier_invoice
+        goal: Turn a supplier invoice PDF into a validated record in the records store.
+        provider: claude-code
+        env:
+          base: debian-slim-python
+          vars:
+            RECORDS_DIR: Directory where validated invoice records are written as JSON.
+            REVIEW_DIR: Directory where validated records with a total over 10,000 are written for approval instead.
+            ESCALATIONS_DIR: Directory where escalation tickets for a human reviewer are written.
+        entry: read
+        inputs:
+          pdf_path: path
+        outputs:
+          done:
+            record: object
+          not_an_invoice: {}
+          needs_review: {}
+        exits:
+        - done
+        - not_an_invoice
+        - needs_review
+        examples:
+        - inputs:
+            pdf_path: examples/acme_inv_1042.pdf
+          outputs:
+            record:
+              key: acme-supplies-ltd__INV-1042
+              supplier: ACME Supplies Ltd
+              invoice_number: INV-1042
+              total: 1200.5
+              currency: GBP
+              due_date: 2026-10-01
+          exit: done
+          env:
+            RECORDS_DIR: '{tmp}/records'
+            REVIEW_DIR: '{tmp}/review'
+            ESCALATIONS_DIR: '{tmp}/escalations'
+        - inputs:
+            pdf_path: examples/globex_inv_77810.pdf
+          outputs:
+            record:
+              key: globex-corporation__GX-77810
+              supplier: Globex Corporation
+              invoice_number: GX-77810
+              total: 14250.0
+              currency: USD
+              due_date: 2026-11-15
+          exit: done
+          env:
+            RECORDS_DIR: '{tmp}/records'
+            REVIEW_DIR: '{tmp}/review'
+            ESCALATIONS_DIR: '{tmp}/escalations'
+        - inputs:
+            pdf_path: examples/initech_inv_5521.pdf
+          outputs:
+            record:
+              key: initech-canada-inc__IC-5521
+              supplier: Initech Canada Inc.
+              invoice_number: IC-5521
+              total: 980.0
+              currency: CAD
+              due_date: 2026-10-20
+          exit: done
+          env:
+            RECORDS_DIR: '{tmp}/records'
+            REVIEW_DIR: '{tmp}/review'
+            ESCALATIONS_DIR: '{tmp}/escalations'
+        - inputs:
+            pdf_path: examples/shipping_notice.pdf
+          outputs: {}
+          exit: not_an_invoice
+          env:
+            RECORDS_DIR: '{tmp}/records'
+            REVIEW_DIR: '{tmp}/review'
+            ESCALATIONS_DIR: '{tmp}/escalations'
+        - inputs:
+            pdf_path: examples/hooli_credit_note_311.pdf
+          outputs: {}
+          exit: needs_review
+          env:
+            RECORDS_DIR: '{tmp}/records'
+            REVIEW_DIR: '{tmp}/review'
+            ESCALATIONS_DIR: '{tmp}/escalations'
+        steps:
+          read:
+            use: ./steps/read_pdf
+          extract:
+            use: ./steps/extract_invoice_fields
+          validate:
+            use: ./steps/validate_fields
+          fix:
+            use: ./steps/fix_fields
+          save:
+            use: ./steps/save_record
+          escalate:
+            use: ./steps/escalate_to_human
+        edges:
+        - from: read.done
+          to:
+          - step: extract
+            with:
+              invoice_text: steps.read.outputs.text
+          kind: deterministic
+        - from: extract.done
+          to:
+          - step: validate
+            with:
+              fields: steps.extract.outputs
+          kind: deterministic
+        - from: extract.not_an_invoice
+          to:
+          - step: $exit.not_an_invoice
+            with: {}
+          kind: deterministic
+        - from: validate.done
+          to:
+          - step: save
+            when: steps.validate.outputs.valid
+            with:
+              record: steps.validate.outputs.record
+              dest: if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR else env.RECORDS_DIR
+          - step: fix
+            when: steps.validate.outputs.fixable and steps.fix.runs < 3
+            with:
+              invoice_text: steps.read.outputs.text
+              fields: steps.validate.outputs.fields
+              errors: steps.validate.outputs.errors
+            limits:
+              max_traversals: 10
+          - step: escalate
+            with:
+              fields: steps.validate.outputs.fields
+              errors: steps.validate.outputs.errors
+              queue_dir: env.ESCALATIONS_DIR
+              run_id: run.id
+          kind: deterministic
+        - from: fix.done
+          to:
+          - step: validate
+            with:
+              fields: steps.fix.outputs
+            limits:
+              max_traversals: 10
+          kind: deterministic
+        - from: save.done
+          to:
+          - step: $exit.done
+            with:
+              record: steps.save.outputs.record
+          kind: deterministic
+        - from: escalate.done
+          to:
+          - step: $exit.needs_review
+            with: {}
+          kind: deterministic
+        finally: []
+      nodes:
+        read:
+          step: process_supplier_invoice#read_pdf
+        extract:
+          step: process_supplier_invoice#extract_invoice_fields
+        validate:
+          step: process_supplier_invoice#validate_fields
+        fix:
+          step: process_supplier_invoice#fix_fields
+        save:
+          step: process_supplier_invoice#save_record
+        escalate:
+          step: process_supplier_invoice#escalate_to_human
+      edges_lock:
+        wynd: 1
+        edges: {}
+  edge_venvs: {}

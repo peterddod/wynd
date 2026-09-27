@@ -1,0 +1,246 @@
+wynd: 1
+process: gated
+commit: <commit>
+source_sha: <commit>
+process_hash: sha256:f3dc7591547acc842fbf3691eecf69dc57a9c94ef6e40c655b9a2f20e555170c
+runtime_version: 0.1.0
+platform: linux/arm64
+base:
+  requested: debian-slim-python
+  variant: slim
+  version: 0.1.0
+  image: wynd-base:0.1.0-slim
+system_packages: []
+fragments:
+- source: step:gated#read
+  deps:
+  - pypdf>=6,<7
+  system: []
+  requires: null
+- source: step:gated#save
+  deps: []
+  system: []
+  requires: null
+- source: step:helper#count
+  deps: []
+  system: []
+  requires: null
+wheels:
+  gated#read:
+    dir: processes/gated/steps/read
+    hash: sha256:0cc80dfc1bc400f090d302e74d8f427152c64bcbc5973c982d02693c253748e2
+    wheel: dist/wynd_step_read_1e6f4419f1-0.1.0-py3-none-any.whl
+  gated#save:
+    dir: processes/gated/steps/save
+    hash: sha256:85966971103cf0267fd73b24396a593c5c4b745bb35f25472da6cf66b5d8a3eb
+    wheel: dist/wynd_step_save_5123500571-0.1.0-py3-none-any.whl
+  helper#count:
+    dir: processes/helper/steps/count
+    hash: sha256:30a7a1f8c6b1c7605ca332fc4ead3c2ce532343d9351b78526abda55559c32e0
+    wheel: dist/wynd_step_count_fbddcab895-0.1.0-py3-none-any.whl
+venvs:
+- id: 6c39ccbb9800c484
+  inputs: []
+  requirements:
+  - wynd-runtime==0.1.0
+  - wynd-spec==0.1.0
+- id: 740e30524c932951
+  inputs:
+  - claude-agent-sdk>=0.2.157,<0.3
+  requirements:
+  - claude-agent-sdk==1.0.0
+  - wynd-runtime==0.1.0
+  - wynd-spec==0.1.0
+- id: d637a048b828edbb
+  inputs:
+  - pypdf>=6,<7
+  requirements:
+  - pypdf==1.0.0
+  - wynd-runtime==0.1.0
+  - wynd-spec==0.1.0
+plan:
+  wynd: 1
+  mode: image
+  root: gated
+  commit: <commit>
+  provider: claude-code
+  venv_root: /opt/wynd/venvs
+  venvs:
+  - id: 6c39ccbb9800c484
+    steps:
+    - gated#save
+    - helper#count
+  - id: d637a048b828edbb
+    steps:
+    - gated#read
+  - id: 740e30524c932951
+    steps: []
+  steps:
+    gated#read:
+      id: gated#read
+      kind: deterministic
+      entrypoint: read:Read
+      venv: d637a048b828edbb
+      package_dir: null
+      lock:
+        wynd: 1
+        name: read
+        kind: deterministic
+        entrypoint: read:Read
+        builtin_tools: []
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps:
+          - pypdf>=6,<7
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+    gated#save:
+      id: gated#save
+      kind: deterministic
+      entrypoint: save:Save
+      venv: 6c39ccbb9800c484
+      package_dir: null
+      lock:
+        wynd: 1
+        name: save
+        kind: deterministic
+        entrypoint: save:Save
+        builtin_tools: []
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+    helper#count:
+      id: helper#count
+      kind: deterministic
+      entrypoint: count:Count
+      venv: 6c39ccbb9800c484
+      package_dir: null
+      lock:
+        wynd: 1
+        name: count
+        kind: deterministic
+        entrypoint: count:Count
+        builtin_tools: []
+        effects: []
+        tools: []
+        mcp: []
+        context: []
+        fragment:
+          deps: []
+          system: []
+          vars: []
+          groups: {}
+        locked_deps: []
+  processes:
+    gated:
+      id: gated
+      dir: null
+      definition:
+        kind: process
+        name: gated
+        env:
+          base: debian-slim-python
+          vars: {}
+        entry: read
+        inputs:
+          src: path
+        outputs:
+          done:
+            n: integer
+        exits:
+        - done
+        examples: []
+        steps:
+          read:
+            use: ./steps/read
+          save:
+            use: ./steps/save
+          sub:
+            use: process:helper
+        edges:
+        - from: read.done
+          to:
+          - step: save
+            with: {}
+            name: keep
+            check: The note is worth keeping.
+          - step: $exit.done
+            with:
+              n: '0'
+          kind: agentic
+        - from: save.done
+          to:
+          - step: sub
+            with: {}
+          kind: deterministic
+        - from: sub.done
+          to:
+          - step: $exit.done
+            with:
+              n: steps.sub.outputs.n
+          kind: deterministic
+        finally: []
+      nodes:
+        read:
+          step: gated#read
+        save:
+          step: gated#save
+        sub:
+          process: helper
+      edges_lock:
+        wynd: 1
+        edges:
+          read.done[keep]:
+            check_hash: sha256:da609cac19451e3c6029c2a76b64296f2988567bac2beac760efb44b78bb05f0
+            tier: standard
+            thinking: low
+            retries: 2
+            timeout_s: 120
+    helper:
+      id: helper
+      dir: null
+      definition:
+        kind: process
+        name: helper
+        env:
+          base: debian-slim-python
+          vars: {}
+        entry: count
+        inputs: {}
+        outputs:
+          done:
+            n: integer
+        exits:
+        - done
+        examples: []
+        steps:
+          count:
+            use: ./steps/count
+        edges:
+        - from: count.done
+          to:
+          - step: $exit.done
+            with:
+              n: '1'
+          kind: deterministic
+        finally: []
+      nodes:
+        count:
+          step: helper#count
+      edges_lock:
+        wynd: 1
+        edges: {}
+  edge_venvs:
+    gated:read.done[keep]: 740e30524c932951
