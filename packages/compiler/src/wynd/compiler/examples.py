@@ -158,14 +158,15 @@ def proposal_problem(example: Example, ctx: ExampleContext, existing: Sequence[E
             continue
         if not (ctx.base_dir / value).exists():
             return f"the file {value!r} does not exist"
-        if value not in _used_paths(existing, ctx):
+        if (name, value) not in _used_paths(existing, ctx):
             return f"its outputs depend on the content of {value!r}, which no existing example shows"
     return None
 
 
-def _used_paths(examples: Sequence[Example], ctx: ExampleContext) -> set[str]:
-    """Path input values of examples that expect a declared exit (their outputs show what the file holds)."""
-    return {e.inputs[name] for e in examples if e.exit != RESERVED_EXIT
+def _used_paths(examples: Sequence[Example], ctx: ExampleContext) -> set[tuple[str, str]]:
+    """(field, path) input pairs of examples that expect a declared exit (their outputs show what the file holds
+    when read through that field)."""
+    return {(name, e.inputs[name]) for e in examples if e.exit != RESERVED_EXIT
             for name, node in ctx.inputs.items()
             if isinstance(node, TScalar) and node.name == "path" and isinstance(e.inputs.get(name), str)}
 

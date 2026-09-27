@@ -2774,3 +2774,7 @@ resolved differently from the reviewer's suggested fix, with the reason.
   file whose path is an input is not `external_data`.
 - **M3-INT result (W8):** `test_compile_from_proto.py` green live: compile wall 579 s, compiler cost $1.67, 18 calls
   (claude-code provider); the whole test 719 s.
+- **W8 close-out:** the unseen-fixture rule is keyed by (input field, path), so a file shown through one path input
+  does not count as shown for another. Not changed: interactive corrections (`_correction`) skip that rule, since the
+  human's answer supplies the outputs. Rerun live after the change: compile wall 534 s, cost $1.65, 19 calls; whole
+  test 679 s.
