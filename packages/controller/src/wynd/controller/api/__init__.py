@@ -1,7 +1,8 @@
-"""`wynd serve-api`: the controller HTTP API (PLAN §3.21; `$DRAFTS/06 §8`). Stub; CTL-API.
+"""`wynd serve-api`: the controller HTTP API (PLAN §3.21; `$DRAFTS/06 §8`).
 
 Server defaults `127.0.0.1:8780`; optional bearer auth `WYND_API_TOKEN` (streams may pass `?access_token=`); CORS for
-`http://localhost:5173`/`http://127.0.0.1:5173`; one uvicorn worker.
+`http://localhost:5173`/`http://127.0.0.1:5173` (`serve` reads `WYND_CORS_ORIGINS` when `cors_origins` is None); one
+uvicorn worker. The app internals are in `api/app.py`.
 """
 
 from __future__ import annotations
@@ -24,7 +25,9 @@ def create_app(
     cors_origins: Sequence[str] = ("http://localhost:5173", "http://127.0.0.1:5173"),
     scheduler: bool = True,
 ) -> FastAPI:
-    raise NotImplementedError("PLAN §3.21")
+    from wynd.controller.api.app import build_app
+
+    return build_app(ctl, web_dist=web_dist, api_token=api_token, cors_origins=cors_origins, scheduler=scheduler)
 
 
 def serve(
@@ -38,4 +41,10 @@ def serve(
     scheduler: bool = True,
     log_level: str = "info",
 ) -> None:
-    raise NotImplementedError("PLAN §3.21")
+    """Blocks until interrupted (`uvicorn.run`, one worker)."""
+    import uvicorn
+
+    from wynd.controller.api.app import build_app
+
+    app = build_app(ctl, web_dist=web_dist, api_token=api_token, cors_origins=cors_origins, scheduler=scheduler)
+    uvicorn.run(app, host=host, port=port, log_level=log_level)

@@ -1,10 +1,11 @@
 """M1/M2 web DTOs and controller models (PLAN §3.21 amendments 10-13, §8.1; `$DRAFTS/07 §12.2`, `$DRAFTS/06 §10.4`).
 
 The web contract is `$DRAFTS/07 §12.2` as amended by PLAN §3.21. `Usage`, `JobUsage`, `JobKind`, `JobStatus`,
-`Integration` (= `IntegrationResult`), `ProcessError`, `EnvVar`, `McpServerEntry` and `ImageRegistryEntry` are the
-single definitions owned by spec, runtime and process; they are re-exported here, never redefined. M3/M4 DTOs live
-in `wynd.controller.api.models_web`. Fields marked "controller addition" are not in the TS contract; they only extend
-it. The `from_*` constructors are the one place each DTO is built from its spec/process/runtime source.
+`Integration` (= `IntegrationResult`), `ProcessError`, `EnvVar`, `McpServerEntry`, `ImageRegistryEntry` and
+`TraceStepKind` are the single definitions owned by spec, runtime and process; they are re-exported here, never
+redefined. M3/M4 DTOs live in `wynd.controller.api.models_web`. Fields marked "controller addition" are not in the TS
+contract; they only extend it. The `from_*` constructors are the one place each DTO is built from its
+spec/process/runtime source.
 """
 
 from datetime import datetime
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 __all__ = [
     "DTO", "Loc", "StatusFlag", "StepPhase", "InterfaceSource", "TriggerKind", "ReleaseState", "RunTrigger",
     "Usage", "JobUsage", "JobKind", "JobStatus", "Integration", "ProcessError", "EnvVar",
-    "McpServerEntry", "ImageRegistryEntry",
+    "McpServerEntry", "ImageRegistryEntry", "TraceStepKind",
     "ExitSchema", "Interface", "InterfaceExample", "ProcessInterface",
     "WorkspaceInfo", "LlmStatus", "Meta",
     "Issue", "ValidationReportDTO", "EnvCheckDTO",

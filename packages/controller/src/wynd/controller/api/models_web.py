@@ -20,10 +20,10 @@ from wynd.controller.models import (
     ReleaseState,
     StepInfo,
     StepPhase,
+    TraceStepKind,
     Usage,
     ValidationReportDTO,
 )
-from wynd.spec.lockfiles import TraceStepKind
 
 __all__ = [
     "CompileSplit", "CompileDecision", "CompileStep", "ProposedExample", "ClarificationAnswer", "ProposalAnswer",

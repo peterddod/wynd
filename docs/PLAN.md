@@ -2422,7 +2422,7 @@ recompiles only that step). Record wall time and cost from the compile report.
 ### Wave 9b — M4 API, CLI, web
 | Unit | Owns | May import | Implements | Accept |
 |---|---|---|---|---|
-| **CTL-API** | controller `api/*.py` (incl. `__init__.py`; `models_web.py` transferred from W0); tests `$C/test_api_*.py`, `$C/{test_web_contract,test_static_mount}.py` | controller (+ fastapi, uvicorn, httpx) | §3.21 | `uv run pytest $C/test_api_*.py $C/{test_web_contract,test_static_mount}.py` |
+| **CTL-API** | controller `api/*.py` (incl. `__init__.py`; `models_web.py` transferred from W0); tests `$C/test_api_*.py`, `$C/{test_web_contract,test_static_mount}.py`, `$C/support/ctl_api_*.py` | controller (+ fastapi, uvicorn, httpx) | §3.21 | `uv run pytest $C/test_api_*.py $C/{test_web_contract,test_static_mount}.py` |
 | **CLI-M4** | cli `commands/{api,release,search}.py`; tests `packages/cli/tests/test_m4_cmds.py` | controller | §9 M4 rows | `uv run pytest packages/cli/tests/test_m4_cmds.py` |
 | **WEB-CORE**, **WEB-GRAPH**, **WEB-CHAT**, **WEB-OPS** | §10 owner lists (+ colocated `*.test.ts(x)` of their files) | HTTP contract only | §10 | `npm --prefix packages/web run test -- <the unit's own test files, relative to packages/web>` (no `npm ci`, no whole-project checks) |
 
@@ -2788,3 +2788,14 @@ resolved differently from the reviewer's suggested fix, with the reason.
   `dump_yaml` still quotes date-like strings. `WyndLoader` keeps YAML's timestamp resolver, the JSON round trip is
   already lossless (`test_design_roundtrip.py`), and dumping them plain would turn a quoted date-like string in a
   `str` model field into a `date` on reload.
+- **W9b close-out:** (1) CTL-API translates library errors in the `Ctl` dependency (`errors.translated()` around
+  the `yield`) instead of per-class handlers, so `api/` imports only controller, fastapi and starlette; an
+  untranslated library error still leaves as a 500 `internal` envelope. `TraceStepKind` is re-exported from
+  `wynd.controller.models`; `$C/support/ctl_api_*.py` is CTL-API's (§0 rule 10). (2) CLI-M4 deviations accepted:
+  `release run` waits until the run has ended and been mirrored (the mirror is a daemon thread of the CLI process;
+  `--follow` only adds step lines), and `release create`/`enable` wait for the background container start.
+  (3) `src/test/setup.ts` resets the query cache, toasts, connection and theme after every test. The upload route
+  already percent-decodes `X-Wynd-Filename`. The whole web suite is `npm --prefix packages/web run test` (W9a note
+  (1) still holds for `npm exec -- vitest run`). (4) Not changed: `SchemaForm`'s free-row mode (an inputs schema
+  without `properties`) does not resync its rows when the value changes from outside (fill-from-example); no
+  fixture or sample process has such a schema.

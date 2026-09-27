@@ -1,7 +1,12 @@
 // Vitest setup (vite.config.ts `test.setupFiles`; `$DRAFTS/07 §17.1`): RTL cleanup, the jsdom shims React Flow
-// needs, FakeEventSource as the global EventSource, and in-memory Web Storage emptied before every test.
+// needs, FakeEventSource as the global EventSource, in-memory Web Storage emptied before every test, and the
+// module-level web state (query cache, toasts, connection, theme) reset after every test.
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach } from "vitest";
+import { resetConnection } from "../state/connection";
+import { resetQueryCache } from "../state/query";
+import { setTheme } from "../state/theme";
+import { clearToasts } from "../state/toasts";
 import { FakeEventSource } from "./fakeEventSource";
 
 class ResizeObserverStub {
@@ -89,4 +94,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   FakeEventSource.reset();
+  resetQueryCache();
+  clearToasts();
+  resetConnection();
+  setTheme("system");
 });

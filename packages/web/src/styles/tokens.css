@@ -1,1 +1,76 @@
-/* Colour tokens on :root plus dark overrides (`$DRAFTS/07 §4.7`). Stub from WEB-SCAFFOLD; WEB-CORE implements it. */
+/* Colour tokens on :root plus dark overrides (`$DRAFTS/07 §4.7`). Text-on-surface pairs meet 4.5:1 in both themes.
+   Dark values appear twice: for the system preference (unless the user picked light) and for an explicit dark pick. */
+:root {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eceff3;
+  --border: #d3d8df;
+  --text: #1b1f24;
+  --text-muted: #56606d;
+  --accent: #2456cc;
+  --accent-contrast: #ffffff;
+  --ok: #1a7336;
+  --warn: #8a5a00;
+  --err: #b42318;
+  --info: #0b5cb8;
+  --focus: #2f6feb;
+  --code-bg: #eef1f5;
+  --badge-design: #7a3fd1;
+  --badge-compiled: #1a7336;
+  --badge-built: #0b5cb8;
+  --badge-released: #9a4700;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --radius: 6px;
+  --shadow: 0 8px 24px rgb(15 23 42 / 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1216;
+    --surface: #171b21;
+    --surface-2: #20262e;
+    --border: #353d48;
+    --text: #e6e9ee;
+    --text-muted: #a0a9b6;
+    --accent: #7aa5ff;
+    --accent-contrast: #0b1020;
+    --ok: #56c979;
+    --warn: #e0b341;
+    --err: #ff8a80;
+    --info: #6cb4ff;
+    --focus: #8ab4ff;
+    --code-bg: #1d232b;
+    --badge-design: #c9a3ff;
+    --badge-compiled: #56c979;
+    --badge-built: #6cb4ff;
+    --badge-released: #f5a05a;
+    --shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1216;
+  --surface: #171b21;
+  --surface-2: #20262e;
+  --border: #353d48;
+  --text: #e6e9ee;
+  --text-muted: #a0a9b6;
+  --accent: #7aa5ff;
+  --accent-contrast: #0b1020;
+  --ok: #56c979;
+  --warn: #e0b341;
+  --err: #ff8a80;
+  --info: #6cb4ff;
+  --focus: #8ab4ff;
+  --code-bg: #1d232b;
+  --badge-design: #c9a3ff;
+  --badge-compiled: #56c979;
+  --badge-built: #6cb4ff;
+  --badge-released: #f5a05a;
+  --shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+}

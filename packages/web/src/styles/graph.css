@@ -1,1 +1,195 @@
-/* `.wg-*`: graph, inspector, settings, examples (PLAN §10). Stub from WEB-SCAFFOLD; WEB-GRAPH implements it. */
+/* `.wg-*`: graph, inspector, settings, examples (PLAN §10). Colours come from the tokens in tokens.css (WEB-CORE);
+   the fallbacks keep the editor legible if a token is missing. */
+
+.wg-design-surface { outline: none; position: relative; min-height: 0; }
+
+.wg-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border, #ccc);
+  background: var(--surface-2, #f4f4f5);
+  color: var(--text, #111);
+}
+.wg-banner-conflict { border-left: 4px solid var(--warn, #b45309); }
+.wg-banner-locked { border-left: 4px solid var(--info, #2563eb); }
+.wg-banner-shared { border-left: 4px solid var(--info, #2563eb); }
+
+.wg-graph-editor { display: flex; flex-direction: column; height: 100%; min-width: 0; min-height: 320px; }
+.wg-canvas { flex: 1; min-height: 280px; position: relative; }
+.wg-parse-error { padding: 16px; color: var(--err, #b91c1c); }
+
+.wg-toolbar { display: flex; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--border, #ccc); }
+
+/* nodes */
+.wg-node {
+  background: var(--surface, #fff);
+  color: var(--text, #111);
+  border: 1px solid var(--border, #ccc);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.wg-step { width: 220px; }
+.wg-terminal, .wg-inputs { width: 160px; display: flex; flex-direction: column; gap: 2px; }
+.wg-inputs { width: 180px; }
+.wg-selected { outline: 2px solid var(--focus, #2563eb); outline-offset: 1px; }
+.wg-has-issues { border-color: var(--err, #b91c1c); }
+.wg-phase-design { border-style: dashed; }
+.wg-phase-missing { border-color: var(--err, #b91c1c); }
+.wg-node-head { display: flex; align-items: center; gap: 6px; }
+.wg-node-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wg-node-badges, .wg-badges { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.wg-inputs-fields { color: var(--text-muted, #555); overflow: hidden; text-overflow: ellipsis; }
+.wg-terminal-ignore { opacity: 0.7; border-style: dotted; color: var(--text-muted, #555); }
+.wg-terminal-undeclared { border-color: var(--err, #b91c1c); }
+
+.wg-exits { list-style: none; margin: 0; padding: 0; }
+.wg-exit { position: relative; height: 22px; line-height: 22px; text-align: right; padding-right: 4px; }
+.wg-exit-implicit { color: var(--text-muted, #555); font-style: italic; }
+.wg-exit-undeclared { color: var(--err, #b91c1c); }
+.wg-exit-unrouted span::after { content: " ·"; color: var(--warn, #b45309); }
+.wg-handle-hidden { visibility: hidden; }
+.wg-open-process { margin-top: 4px; }
+
+/* edges */
+.wg-edge { stroke: var(--text-muted, #666); }
+.wg-edge-selected { stroke: var(--focus, #2563eb); stroke-width: 2; }
+.wg-edge-error { stroke: var(--err, #b91c1c); }
+.wg-edge-ignored { stroke-dasharray: 5 4; opacity: 0.55; }
+.wg-edge-label {
+  position: absolute;
+  pointer-events: all;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface, #fff);
+  color: var(--text, #111);
+  border: 1px solid var(--border, #ccc);
+  white-space: nowrap;
+}
+.wg-edge-label.wg-edge-error { color: var(--err, #b91c1c); border-color: var(--err, #b91c1c); }
+.wg-edge-label.wg-edge-selected { border-color: var(--focus, #2563eb); }
+.wg-entry-edge path { stroke-dasharray: 2 3; }
+
+/* badges and chips */
+.wg-badge, .wg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #ccc);
+  background: var(--surface-2, #f4f4f5);
+  color: var(--text, #111);
+}
+.wg-badge-error { color: var(--err, #b91c1c); border-color: var(--err, #b91c1c); }
+.wg-chip-muted { color: var(--text-muted, #555); }
+.wg-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; }
+.wg-flag { font-size: 11px; color: var(--warn, #b45309); }
+
+/* inspector and forms */
+.wg-inspector {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-left: 1px solid var(--border, #ccc);
+  background: var(--surface, #fff);
+  color: var(--text, #111);
+}
+.wg-inspector h2 { font-size: 16px; margin: 4px 0; }
+.wg-inspector h3, .wg-settings h3 { font-size: 13px; margin: 12px 0 4px; }
+.wg-inspector-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.wg-field { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; }
+.wg-field > span, .wg-field > label { font-size: 12px; color: var(--text-muted, #555); }
+.wg-check { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.wg-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0; }
+.wg-hint, .wg-muted { color: var(--text-muted, #555); font-size: 12px; }
+.wg-mono { font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); }
+.wg-error-text { color: var(--err, #b91c1c); font-size: 12px; }
+.wg-warning-text { color: var(--warn, #b45309); font-size: 12px; }
+.wg-danger { color: var(--err, #b91c1c); }
+.wg-link { background: none; border: none; padding: 0; color: var(--accent, #2563eb); text-decoration: underline; cursor: pointer; }
+.wg-visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); border: 0;
+}
+.wg-inspector input, .wg-inspector textarea, .wg-inspector select,
+.wg-settings input, .wg-settings textarea, .wg-settings select { max-width: 100%; box-sizing: border-box; }
+.wg-inspector textarea, .wg-settings textarea { width: 100%; }
+
+.wg-expr { position: relative; margin: 6px 0; display: flex; flex-direction: column; gap: 2px; }
+.wg-expr > label { font-size: 12px; color: var(--text-muted, #555); }
+.wg-expr textarea { resize: vertical; overflow: hidden; background: var(--code-bg, #f8f8f8); color: var(--text, #111); }
+.wg-expr textarea[aria-invalid="true"] { border-color: var(--err, #b91c1c); }
+.wg-expr-message { display: flex; flex-direction: column; }
+.wg-completions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 2px 0;
+  max-width: 100%;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #ccc);
+  border-radius: 4px;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 12px;
+}
+.wg-completions li { padding: 2px 8px; cursor: pointer; overflow-wrap: anywhere; }
+.wg-completions li.wg-active { background: var(--accent, #2563eb); color: var(--accent-contrast, #fff); }
+
+.wg-branches { list-style: none; padding: 0; margin: 8px 0; }
+.wg-branch-card { border: 1px solid var(--border, #ccc); border-radius: 6px; padding: 6px 8px; margin: 6px 0; }
+.wg-branch-card.wg-collapsed { padding: 0; }
+.wg-branch-card.wg-collapsed button {
+  width: 100%; text-align: left; background: none; border: none; padding: 6px 8px; color: var(--text, #111);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wg-branch-card.wg-ignored { opacity: 0.7; border-style: dashed; }
+.wg-branch-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.wg-with ul, .wg-routing, .wg-issues, .wg-choices { list-style: none; padding: 0; margin: 4px 0; }
+.wg-with, .wg-limits, .wg-values, .wg-exit-fields, .wg-exit-codes, .wg-env, .wg-finally {
+  border: 1px solid var(--border, #ccc); border-radius: 6px; margin: 6px 0; padding: 4px 8px; min-width: 0;
+}
+.wg-routing li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0; }
+.wg-issues button {
+  width: 100%; text-align: left; background: none; border: none; padding: 2px 0; color: var(--text, #111); cursor: pointer;
+}
+.wg-issue-error .wg-badge { color: var(--err, #b91c1c); }
+.wg-issue-warning .wg-badge { color: var(--warn, #b45309); }
+.wg-stale { opacity: 0.55; }
+.wg-schema-summary p { margin: 2px 0; }
+.wg-extra summary, .wg-schema-advanced summary { cursor: pointer; font-size: 12px; color: var(--text-muted, #555); }
+.wg-extra textarea { width: 100%; }
+
+.wg-field-table table { width: 100%; border-collapse: collapse; }
+.wg-field-table th { text-align: left; font-size: 11px; color: var(--text-muted, #555); font-weight: normal; }
+.wg-field-table input, .wg-field-table textarea { width: 100%; }
+
+/* examples, settings, yaml */
+.wg-examples ol { list-style: none; padding: 0; margin: 0; }
+.wg-example-card { border: 1px solid var(--border, #ccc); border-radius: 6px; padding: 6px 8px; margin: 6px 0; }
+.wg-example-title { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.wg-value { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 4px 0; }
+.wg-value > label { flex: 0 0 100%; font-size: 12px; color: var(--text-muted, #555); }
+.wg-value.wg-check > label { flex: 0 1 auto; }
+.wg-value textarea { width: 100%; }
+
+.wg-settings { max-width: 760px; padding: 12px 16px; overflow: auto; color: var(--text, #111); }
+.wg-settings > fieldset { border: none; padding: 0; margin: 0; }
+
+.wg-yaml { padding: 12px 16px; overflow: auto; color: var(--text, #111); }
+.wg-yaml pre {
+  background: var(--code-bg, #f8f8f8); padding: 8px; border-radius: 6px; overflow: auto; font-size: 12px; white-space: pre;
+}
+.wg-yaml h3 { font-size: 12px; margin: 12px 0 4px; }
+
+.wg-dialog .wg-choices { max-height: 240px; overflow: auto; }
+dialog.wg-switch-blocked { max-width: min(480px, calc(100vw - 32px)); color: var(--text, #111); background: var(--surface, #fff); }

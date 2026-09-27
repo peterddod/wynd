@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Wynd: design, compile, build and run processes." />
     <title>Wynd</title>
+    <script>
+      // The stored theme before the first paint (main.tsx applies it again): no light flash for a dark pick.
+      try {
+        var theme = localStorage.getItem("wynd.theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
