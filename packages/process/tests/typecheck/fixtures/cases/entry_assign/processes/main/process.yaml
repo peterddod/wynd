@@ -1,0 +1,18 @@
+kind: process
+name: main
+entry: first
+inputs:
+  text: integer
+  count: number
+outputs:
+  result: string
+steps:
+  first:  { use: ./steps/first }
+  second: { use: ./steps/second }
+edges:
+  - from: first.done
+    to: second
+    with: { value: steps.first.outputs.value, amount: steps.first.outputs.total }
+  - from: second.done
+    to: $exit.done
+    with: { result: steps.second.outputs.result }

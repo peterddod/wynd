@@ -1,0 +1,45 @@
+kind: process
+name: mini
+goal: Tidy a support ticket and file a note about it.
+provider: fake
+env:
+  vars:
+    NOTES_DIR: Directory where notes are filed.
+entry: normalise
+inputs:
+  name: string
+outputs:
+  done: { path: path }
+  spam: {}
+examples:
+  - inputs: { name: "  ada lovelace " }
+    env: { NOTES_DIR: "{tmp}/notes" }
+    exit: done
+  - inputs: { name: win a prize now }
+    env: { NOTES_DIR: "{tmp}/notes" }
+    exit: spam
+steps:
+  normalise: { use: ./steps/normalise_name }
+  classify:  { use: ./steps/classify_ticket }
+  parse:     { use: ./steps/parse_amount }
+  shout:     { use: ./steps/shout }
+  store:     { use: ./steps/store_note }
+edges:
+  - from: normalise.done
+    to: classify
+    with: { message: steps.normalise.outputs.name }
+  - from: classify.done
+    to: parse
+    with: { text: '"£12.50"' }
+  - from: classify.spam
+    to: $exit.spam
+  # the amount is only checked, not carried on
+  - from: parse.done
+    to: shout
+    with: { text: steps.normalise.outputs.name }
+  - from: shout.done
+    to: store
+    with: { note: steps.shout.outputs.text, dest: env.NOTES_DIR }
+  - from: store.done
+    to: $exit.done
+    with: { path: steps.store.outputs.path }

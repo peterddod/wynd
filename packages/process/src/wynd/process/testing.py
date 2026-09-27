@@ -368,7 +368,7 @@ def _example_case(
         detail = f" ({result.error.cause}: {result.error.message})" if result.error is not None else ""
         message = f"exit: expected {example.exit!r}, got {result.exit!r}{detail}"
         return TestCase(name=name, outcome="failed", message=message, duration_ms=_ms(t0))
-    mismatches = match_outputs(example.outputs, result.outputs)
+    mismatches = match_outputs(sub_tmp(example.outputs, tmp), result.outputs)
     if mismatches:
         message = "\n".join(f"{m.field}: expected {m.expected!r}, got {m.actual!r}" for m in mismatches)
         return TestCase(name=name, outcome="failed", message=message, duration_ms=_ms(t0))

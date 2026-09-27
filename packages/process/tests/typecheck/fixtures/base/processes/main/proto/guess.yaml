@@ -1,0 +1,6 @@
+kind: proto_step
+name: guess
+instruction: Guess a label for the value.
+examples:
+  - inputs: { value: A }
+    outputs: { label: letter }

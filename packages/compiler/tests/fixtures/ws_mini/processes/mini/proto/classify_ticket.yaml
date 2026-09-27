@@ -1,0 +1,13 @@
+kind: proto_step
+name: classify_ticket
+instruction: Decide whether a support message is a real request, and its category, or spam.
+inputs: { message: string }
+outputs:
+  done: { category: string }
+  spam: {}
+examples:
+  - inputs: { message: My invoice is wrong }
+    outputs: { category: billing }
+    exit: done
+  - inputs: { message: WIN A PRIZE NOW }
+    exit: spam

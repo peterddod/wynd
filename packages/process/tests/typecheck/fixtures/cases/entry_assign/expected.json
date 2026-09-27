@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E-TYPE-ASSIGN", "severity": "error", "path": "inputs.text", "line": 5, "message": "process input 'text' -> input 'text' of entry step 'first': expected string got integer"},
+    {"code": "W-TYPE-ASSIGN", "severity": "warning", "path": "inputs.count", "line": 6, "message": "process input 'count' -> input 'count' of entry step 'first': expected integer got number"}
+  ]
+}

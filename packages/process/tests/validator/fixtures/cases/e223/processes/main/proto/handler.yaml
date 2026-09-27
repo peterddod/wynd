@@ -4,6 +4,8 @@ instruction: Open a ticket for the failure.
 inputs:
   message: string
   ticket_id: string
-outputs: {}
+outputs:
+  result: string
 examples:
   - inputs: { message: boom, ticket_id: T-1 }
+    outputs: { result: T-1 }

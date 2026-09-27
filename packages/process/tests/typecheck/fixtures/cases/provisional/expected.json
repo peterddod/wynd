@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W202", "severity": "warning", "path": "steps.guess", "line": 13, "message": "step 'guess': interface inferred from examples (no declared schemas); field checks are advisory until compile"}
+  ]
+}

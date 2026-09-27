@@ -8,6 +8,7 @@ infer_schema/revise_example).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import BaseModel
@@ -113,3 +114,23 @@ class ReviseAgenticResponse(WriteAgenticResponse):
     diagnosis: str
     verdict: Literal["fixable", "examples_inconsistent", "needs_stronger_model"]
     suspects: list[Suspect]
+
+
+@dataclass(frozen=True)
+class CallSpec:
+    tier: Literal["cheap", "standard", "strong"]
+    thinking: Literal["low", "medium", "high"]
+    response_model: type[BaseModel]
+
+
+CALLS: dict[str, CallSpec] = {
+    "infer_schema": CallSpec("standard", "low", InferSchemaResponse),
+    "propose_examples": CallSpec("strong", "medium", ProposeExamplesResponse),
+    "revise_example": CallSpec("standard", "low", ReviseExampleResponse),
+    "decide": CallSpec("strong", "medium", DecideResponse),
+    "write_deterministic": CallSpec("strong", "medium", WriteCodeResponse),
+    "write_shell": CallSpec("strong", "medium", WriteCodeResponse),
+    "write_agentic": CallSpec("strong", "medium", WriteAgenticResponse),
+    "revise_code": CallSpec("strong", "high", ReviseCodeResponse),
+    "revise_agentic": CallSpec("strong", "medium", ReviseAgenticResponse),
+}

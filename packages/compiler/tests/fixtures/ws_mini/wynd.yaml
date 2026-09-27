@@ -1,0 +1,2 @@
+# Synthetic workspace for the offline compiler tests (stdlib-only steps, the runtime `fake` provider).
+process_roots: [processes]

@@ -1,0 +1,15 @@
+kind: proto_step
+name: first
+instruction: Read the text.
+inputs:
+  text: string
+  count: integer
+outputs:
+  value: string
+  total: number
+  size: integer
+  note: string?
+  day: date
+examples:
+  - inputs: { text: a, count: 1 }
+    outputs: { value: A, total: 1.5, size: 1, note: null, day: 2026-10-01 }

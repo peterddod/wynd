@@ -1,0 +1,8 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E-TYPE-ASSIGN", "severity": "error", "path": "on_error", "line": 22, "message": "on_error step 'handler' input 'cause' <- ProcessError.cause: expected integer got \"step_error\" | \"unrouted_exit\" | \"ignored_exit\" | \"no_branch_matched\" | \"max_traversals\" | \"timeout\" | \"expression_error\" | \"invalid_process_outputs\" | \"edge_check\" | \"internal\""},
+    {"code": "E-TYPE-ASSIGN", "severity": "error", "path": "on_error", "line": 22, "message": "on_error step 'handler' exit 'done' -> process output 'done': result: expected string got integer"},
+    {"code": "W-TYPE-NULL", "severity": "warning", "path": "on_error", "line": 22, "message": "on_error step 'handler' input 'step' <- ProcessError.step: may be null"}
+  ]
+}

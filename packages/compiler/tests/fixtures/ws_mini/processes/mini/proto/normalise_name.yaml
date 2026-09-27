@@ -1,0 +1,10 @@
+kind: proto_step
+name: normalise_name
+instruction: Strip surrounding spaces from a person's name and write it in title case.
+inputs: { name: string }
+outputs: { name: string }
+examples:
+  - inputs: { name: "  ada lovelace " }
+    outputs: { name: Ada Lovelace }
+  - inputs: { name: GRACE HOPPER }
+    outputs: { name: Grace Hopper }

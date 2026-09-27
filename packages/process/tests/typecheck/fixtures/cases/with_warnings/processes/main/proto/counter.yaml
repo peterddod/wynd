@@ -1,0 +1,13 @@
+kind: proto_step
+name: counter
+instruction: Count.
+inputs:
+  n: integer
+  day: date
+  label: string
+  when: string
+outputs:
+  result: string
+examples:
+  - inputs: { n: 1, day: 2026-10-01, label: a, when: "2026-10-01" }
+    outputs: { result: one }
