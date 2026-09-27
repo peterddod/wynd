@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+from wynd.runtime.agentic.errors import ToolFailure
 from wynd.runtime.cassettes import CassetteError, CassetteMissError
 from wynd.runtime.cassettes.key import (
     Normaliser,
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
     from wynd.runtime.policy import CassetteConfig
 
 CASSETTE_KEY = "cassette_key"      # stamped into every AgentResponse.session; chains continuation keys
+TOOL_FAILURE = "tool_failure"      # response of an agent run a failing tool aborted (the ToolFailure message)
 
 
 class CassetteSession:
@@ -181,9 +183,17 @@ class CassetteAgentProvider:
         self.last_key = key
         if s.mode == "replay":
             entry = s.lookup(canonical)
+            if TOOL_FAILURE in entry.response:
+                raise ToolFailure(entry.response[TOOL_FAILURE])
             _reexecute_local_tools(req, entry.response.get("transcript", []))
             return _agent_response(entry.response, key)
-        resp = self._inner().run(_without_cassette_key(req))
+        try:
+            resp = self._inner().run(_without_cassette_key(req))
+        except ToolFailure as err:
+            # a tool the harness called failed and aborted the run: the outcome of this request, so it replays
+            if s.mode == "record":
+                s.record(canonical, {TOOL_FAILURE: str(err)}, model_id=None)
+            raise
         if s.mode == "record":
             s.record(canonical, _agent_json(resp), model_id=resp.model_id)
         return dataclasses.replace(resp, session={**resp.session, CASSETTE_KEY: key})

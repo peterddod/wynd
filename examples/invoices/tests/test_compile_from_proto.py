@@ -8,7 +8,6 @@ Prints the compile's wall time and reported cost.
 """
 
 import json
-import re
 import shutil
 import subprocess
 import time
@@ -58,7 +57,8 @@ def wynd(ws: Path, *args: str) -> str:
 
 def compile_job(ws: Path) -> dict:
     """The newest compile job of the process (the CLI's `jobs list --json`)."""
-    return json.loads(wynd(ws, "jobs", "list", "--process", PID, "--kind", "compile", "--limit", "1", "--json"))[0]
+    out = wynd(ws, "jobs", "list", "--process", PID, "--kind", "compile", "--limit", "1", "--json")
+    return json.loads(out)["items"][0]
 
 
 def locks(ws: Path) -> dict[str, StepLock]:
@@ -90,9 +90,10 @@ def test_compile_produces_the_m1_process_from_proto_steps(workspace, tmp_path, m
     out = wynd(ws, "compile", PID, "--accept-proposals")
     wall_s = time.monotonic() - started
     job = compile_job(ws)
-    assert job["status"] == "succeeded" and re.search(rf"wynd/compile/{PID}/{job['id']}", out)
+    assert job["status"] == "succeeded" and job["branch"] == f"wynd/compile/{PID}/{job['id']}"
     head = git(ws, "rev-parse", "HEAD").strip()
-    assert head == job["result_commit"] and git(ws, "rev-parse", f"{head}~1").strip() == base    # fast-forwarded
+    assert head == job["result_commit"]
+    assert git(ws, "rev-parse", f"{head}~1").strip() == base and f"fast-forwarded main to {head[:7]}" in out
     assert git(ws, "status", "--porcelain", "--", ".", ":(exclude).wynd") == ""
     assert git(ws, "log", "-1", "--format=%s").strip() == f"wynd compile: {PID}"
     usage = (job.get("report") or {}).get("usage", {}).get("total", {})

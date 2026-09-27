@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from wynd.runtime.agentic.errors import ToolFailure
 from wynd.runtime.cassettes import NO_RECORDING, CassetteError, CassetteMissError, CassetteSession, promote
 from wynd.runtime.cassettes.key import (
     Normaliser,
@@ -349,6 +350,29 @@ def test_agent_replay_reexecutes_local_tool_uses_in_recorded_order(tmp_path):
     assert events == resp.transcript
     assert [e.get("id") for e in events] == [None, "t1", "t1", "t2", "t3", "t4", "t5"]
     assert resp.tool_calls == 4 and resp.structured_output == {"exit": "done", "total": 1200.5}
+
+
+def test_agent_run_aborted_by_a_tool_failure_records_and_replays_the_failure(tmp_path):
+    ws1, ws2 = tmp_path / "ws1", tmp_path / "ws2"
+    staging, cassettes = tmp_path / "staging", tmp_path / "cassettes"
+
+    def fail(args):
+        raise ToolFailure(f"tool read_pdf failed: FileNotFoundError: not a PDF file: {args['path']}")
+
+    handles = [ToolHandle("read_pdf", "Read a PDF.", {"type": "object"}, fail, local=True)]
+    transcript = [{"type": "tool_use", "id": "t1", "name": "read_pdf", "input": {"path": "missing.pdf"}}]
+    rec = session(ws1, "record", record_dir=staging).wrap(
+        lambda: ScriptedAgentProvider([agent_resp(transcript=transcript)]), "agent")
+    with pytest.raises(ToolFailure, match="not a PDF file: missing.pdf"):
+        rec.run(agent_req(ws1, tools=handles))
+    entry = json.loads((staging / f"{rec.last_key[:32]}.json").read_text())
+    assert entry["response"] == {
+        "tool_failure": "tool read_pdf failed: FileNotFoundError: not a PDF file: missing.pdf"}
+    promote(staging, cassettes)
+
+    rep = session(ws2, "replay", dir=cassettes, run_id="run-2").wrap(never_built, "agent")
+    with pytest.raises(ToolFailure, match="not a PDF file: missing.pdf"):
+        rep.run(agent_req(ws2, tools=handles))
 
 
 # --- tool calls -------------------------------------------------------------------------------------------------------

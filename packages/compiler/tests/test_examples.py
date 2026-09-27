@@ -98,8 +98,16 @@ def test_proposal_problems(tmp_path):
     assert "same inputs as example 1" in proposal_problem(ex({"text": "12"}, exit="unreadable"), ctx, existing)
     assert "does not exist" in proposal_problem(ex({"text": "1", "source": "examples/missing.txt"},
                                                    outputs={"amount": 1}), ctx, existing)
-    assert proposal_problem(ex({"text": "1", "source": "examples/a.txt"}, outputs={"amount": 1}), ctx, existing) \
+    # the model sees fixture names only: outputs for a file no existing example shows are a guess
+    assert "no existing example shows" in proposal_problem(
+        ex({"text": "1", "source": "examples/a.txt"}, outputs={"amount": 1}), ctx, existing)
+    assert "no existing example shows" in proposal_problem(
+        ex({"text": "1", "source": "examples/a.txt"}, outputs={"amount": 1}), ctx,
+        [*existing, ex({"text": "2", "source": "examples/a.txt"}, exit="error")])
+    with_a = [*existing, ex({"text": "2", "source": "examples/a.txt"}, outputs={"amount": 12})]
+    assert proposal_problem(ex({"text": "1", "source": "examples/a.txt"}, outputs={"amount": 1}), ctx, with_a) \
         is None
+    assert proposal_problem(ex({"text": "1", "source": "examples/a.txt"}, exit="error"), ctx, existing) is None
     assert proposal_problem(ex({"text": "1", "source": "missing.txt"}, exit="error"), ctx, existing) is None
     assert proposal_problem(ex({"text": "1", "source": "{tmp}/a.txt"}, outputs={"amount": 1}), ctx, existing) \
         is None

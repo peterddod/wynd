@@ -2020,7 +2020,8 @@ Classify each example as exactly one of:
 - judgement: it requires reading comprehension, classifying free-form text, or tolerating phrasing that written
   rules would not reliably capture.
 - world_knowledge: it requires facts that are not in the inputs.
-- external_data: it requires fetching information at run time (a web page, an API, a database).
+- external_data: it requires fetching information at run time (a web page, an API, a database). Reading a file
+  whose path is an input is not external data: classify it by what is done with the file's content.
 
 Be realistic rather than optimistic. Choose pure only when you could write the rule and expect it to generalise
 beyond these examples. Free-form text written by different people usually needs judgement. Machine-generated or

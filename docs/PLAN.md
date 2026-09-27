@@ -2766,3 +2766,11 @@ resolved differently from the reviewer's suggested fix, with the reason.
   excluding `shell` from the loop.
 - **AgentProvider replay asymmetry:** the re-execution option was taken (`ToolHandle.local`), not the option of
   documenting the asymmetry.
+- **M3-INT live fix-ups (W8):** (1) a proposed example that expects outputs from a fixture file no existing example
+  of the step uses is dropped with a warning (`examples.proposal_problem`): the model sees fixture names only, so its
+  outputs are a guess `--accept-proposals` would make a permanent, unsatisfiable test. (2) An agent run aborted by a
+  `ToolFailure` is recorded as `{"tool_failure": <message>}` and replays by raising it (`cassettes/wrap.py`), so an
+  agentic step's `error` examples replay. (3) The `decide` prompt (`$DRAFTS/05 §14`, both copies) says that reading a
+  file whose path is an input is not `external_data`.
+- **M3-INT result (W8):** `test_compile_from_proto.py` green live: compile wall 579 s, compiler cost $1.67, 18 calls
+  (claude-code provider); the whole test 719 s.

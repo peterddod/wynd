@@ -137,8 +137,10 @@ def example_problems(examples: Sequence[Example], ctx: ExampleContext) -> list[s
 
 
 def proposal_problem(example: Example, ctx: ExampleContext, existing: Sequence[Example]) -> str | None:
-    """Why a proposed example cannot be offered: it does not conform, duplicates an example, or names a missing
-    file (unless it expects `error`). None when it is fine."""
+    """Why a proposed example cannot be offered: it does not conform, duplicates an example, names a missing file
+    (unless it expects `error`), or expects outputs from a fixture file no existing example uses (the model sees
+    only file names, so those outputs are a guess `--accept-proposals` would make permanent). None when it is
+    fine."""
     problems = check_examples([example], ctx)
     if problems:
         return problems[0]
@@ -152,9 +154,20 @@ def proposal_problem(example: Example, ctx: ExampleContext, existing: Sequence[E
         value = c.inputs.get(name)
         if not (isinstance(node, TScalar) and node.name == "path" and isinstance(value, str)):
             continue
-        if not value.startswith(TMP_PREFIX) and not (ctx.base_dir / value).exists():
+        if value.startswith(TMP_PREFIX):
+            continue
+        if not (ctx.base_dir / value).exists():
             return f"the file {value!r} does not exist"
+        if value not in _used_paths(existing, ctx):
+            return f"its outputs depend on the content of {value!r}, which no existing example shows"
     return None
+
+
+def _used_paths(examples: Sequence[Example], ctx: ExampleContext) -> set[str]:
+    """Path input values of examples that expect a declared exit (their outputs show what the file holds)."""
+    return {e.inputs[name] for e in examples if e.exit != RESERVED_EXIT
+            for name, node in ctx.inputs.items()
+            if isinstance(node, TScalar) and node.name == "path" and isinstance(e.inputs.get(name), str)}
 
 
 def parse_proposal(p: Proposal) -> Example:
