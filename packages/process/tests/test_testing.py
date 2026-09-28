@@ -377,3 +377,40 @@ def test_run_test_live_job_commits_then_records_at_the_new_closure_head(notes, t
     assert outcome.error == "live tests failed: notes#read"
     assert outcome.report["mode"] == "live"
     assert outcome.artefacts == {"replay": {"commit": head, "passed": True, "recorded": True}}
+
+
+def test_run_test_live_job_meters_the_live_model_calls(notes, tmp_path, monkeypatch, runs, git_double):
+    """SPEC §15: the job's usage is the live run's recorded `model.call`s per `<provider>/<tier>`; replayed calls
+    (and every call of the replay run) cost nothing."""
+    def call(cassette, tier, usage):
+        return {"type": "model.call", "provider": "claude-code", "tier": tier, "cassette": cassette, "usage": usage}
+
+    def fake_run_tests(ws, pid, *, mode, commit, runs, venv_root, scratch, env=None, log=None):
+        events = [call("record", "standard", {"input_tokens": 10, "output_tokens": 2, "cost_usd": 0.01}),
+                  call("record", "cheap", {"input_tokens": 3, "output_tokens": 1, "cost_usd": 0.002}),
+                  call("record", "standard", {"input_tokens": 5, "output_tokens": 4, "cost_usd": 0.02}),
+                  call("replay", "standard", {"input_tokens": 99, "output_tokens": 99, "cost_usd": 9.0}),
+                  {"type": "step.end", "usage": {"input_tokens": 15}}]
+        if env is not None and env.get("WYND_EVENTS_FILE"):
+            with open(env["WYND_EVENTS_FILE"], "a", encoding="utf-8") as out:
+                out.writelines(json.dumps(event) + "\n" for event in events)
+        now = datetime.now(UTC)
+        return TestReport(process=pid, commit=commit, process_hash="p", mode=mode, passed=True, suites=[],
+                          started_at=now, finished_at=now, recorded=commit is not None)
+
+    monkeypatch.setattr(testing, "run_tests", fake_run_tests)
+    now = datetime.now(UTC)
+    job = JobRecord(id="job_1", job_kind="test_live", process="notes", ref="a" * 40, base_commit="a" * 40,
+                    target_branch="main", inputs={"process": "notes"}, status="running", runner="inprocess",
+                    handler="wynd.process.testing:run_test_live_job", created_at=now, updated_at=now)
+    state = tmp_path / "user" / ".wynd"
+    ctx = JobContext(
+        job=job, inputs=job.inputs, session=None, worktree=notes, workspace=notes, workspace_root=tmp_path / "user",
+        state_dir=state, scratch=state / "jobs/job_1/scratch", runs=runs, registry=None, log=lambda line: None,
+        commit=lambda message, paths: "b" * 40, save_session=lambda s: None,
+    )
+    usage = run_test_live_job(ctx).usage
+    assert (usage.calls, usage.input_tokens, usage.output_tokens) == (3, 18, 7)
+    assert usage.cost_usd == pytest.approx(0.032)
+    assert {key: (u.calls, u.input_tokens) for key, u in usage.by.items()} == {
+        "claude-code/standard": (2, 15), "claude-code/cheap": (1, 3)}

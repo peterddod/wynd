@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from wynd.runtime.mcp.entry import McpServerEntry
     from wynd.runtime.mcp.snapshot import McpToolSpec
     from wynd.runtime.storage.base import Registry
+    from wynd.runtime.usage import Usage
     from wynd.spec.process_doc import ProcessDoc
     from wynd.spec.proto_step import ProtoStep
 
@@ -296,8 +297,11 @@ def _process_phase(session: CompileSession, env: CompileEnv, lp: LoadedProcess, 
         scratch = env.scratch / "process" / slug(p.id)
         shutil.rmtree(scratch, ignore_errors=True)
         staging = scratch / "record"
-        suite = env.deps.run_process_examples(ws, p.id, mode="record", env=dict(os.environ), scratch=scratch / "run",
+        events = scratch / "events.jsonl"                     # metered as recording usage (SPEC §15)
+        record_env = {**os.environ, "WYND_EVENTS_FILE": str(events)}
+        suite = env.deps.run_process_examples(ws, p.id, mode="record", env=record_env, scratch=scratch / "run",
                                               venv_root=venv_root, record_root=staging, log=env.log)
+        report.usage.recording = report.usage.recording + _file_usage(events)
         if suite.passed:
             promote(staging, process_dir / CASSETTES_DIR)
             suite = env.deps.run_process_examples(load_workspace(env.checkout), p.id, mode="replay",
@@ -757,25 +761,32 @@ class _Final:
 
 def _events_usage(session: CompileSession, pid: str, node: str, result: Any) -> None:
     """The step's own model calls while its tests recorded (`model.call` events of `WYND_EVENTS_FILE`)."""
-    import json
-
-    from wynd.runtime.usage import Usage
-
     path = getattr(result, "events_file", None)
     if path is None or not Path(path).is_file():
         return
-    total = Usage()
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        try:
-            event = json.loads(line)
-        except ValueError:
-            continue
-        if event.get("type") == "model.call" and event.get("usage"):
-            total = total + Usage.model_validate({**event["usage"], "calls": 1})
+    total = _file_usage(Path(path))
     report = session.data.report
     entry = report.step_entry(pid, node)
     entry.usage.recording = entry.usage.recording + total
     report.usage.recording = report.usage.recording + total
+
+
+def _file_usage(path: Path) -> Usage:
+    """The usage of the non-replayed `model.call` events of a `WYND_EVENTS_FILE` (zero when there is none)."""
+    import json
+
+    from wynd.runtime.usage import Usage
+
+    total = Usage()
+    lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("type") == "model.call" and event.get("cassette") != "replay" and event.get("usage"):
+            total = total + Usage.model_validate({**event["usage"], "calls": 1})
+    return total
 
 
 # --- report and session rows ----------------------------------------------------------------------------------------

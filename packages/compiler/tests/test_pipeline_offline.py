@@ -269,6 +269,7 @@ def test_a_new_agentic_branch_is_locked_and_recorded_with_every_step_skipped(ws,
     assert outcome.report["process_changes"] == [{"type": "edges_lock", "process": "mini",
                                                   "branches": ["classify.done[real]"]}]
     assert outcome.report["integration_tests"]["passed"] == 2
+    assert outcome.usage.by["recording"].calls > 0        # the record phase's model calls, although no step compiled
     files = files_at(git, ws, outcome.commit)
     assert "processes/mini/edges.lock.yaml" in files
     assert [f for f in files if f.startswith("processes/mini/cassettes/edges/")]

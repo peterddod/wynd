@@ -118,7 +118,9 @@ def test_optimise_apply_demotes_extract_live(workspace):
 
     assert re.search(r"^tier: cheap$", (ws / LOCK).read_text(encoding="utf-8"), re.M)
     after = recordings(ws)
-    assert after and set(after) != set(before)
+    newest_before = max(entry["recorded_at"] for entry in before.values())
+    # the committed recordings are already `cheap`, so fresh ones keep their keys (PLAN §3.16); they are newer
+    assert after and all(entry["recorded_at"] > newest_before for entry in after.values())
     assert {entry["tier"] for entry in after.values()} == {"cheap"}
     assert git(ws, "status", "--porcelain", "--", ".", ":(exclude).wynd") == ""
 

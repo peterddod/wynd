@@ -2851,7 +2851,21 @@ resolved differently from the reviewer's suggested fix, with the reason.
 - **W12 trace reading:** `wynd test` runs examples on scratch stores it deletes afterwards, so `run-example-6` is not
   addressable by `wynd trace`. "The run id of example 6" (here and FINAL-INT item 4) is a `wynd run --local` of example
   6's input; its trace shows `validate.done → save  check: NOT TAKEN — "…" (claude-code/cheap, 6.28s, $0.0043)`.
-- **W12 not changed:** (1) `test_live` jobs and the compile's process-level record phase report zero `JobUsage`
-  although they make live calls (only compile attempts are metered). (2) Their example runs trace into the job's
+- **W12 not changed:** (1) Superseded by the W12 close-out below. (2) Live-test example runs trace into the job's
   scratch stores (fixed ids `run-example-<n>` would collide in the workspace registry), so optimise evidence is
   served/CLI runs only, not live tests as `$DRAFTS/08 §1` item 8 lists; the report above counts CLI runs.
+- **W12 close-out:** (1) Usage is metered where live calls were unmetered (SPEC §15): a `test_live` job points its
+  live run's `WYND_EVENTS_FILE` at its scratch dir and reports the non-replayed `model.call`s as `JobUsage` per
+  `<provider>/<tier>` (`test_testing.py`); the compile's process-level record phase adds its calls to the report's
+  `recording` usage, and so to the job's `by["recording"]` (`test_pipeline_offline.py`); replayed calls never count
+  toward recording usage. (2) `test_optimise_live.py` (OPT-CTL) asserted that re-recording `extract` at `cheap`
+  changes its cassette file names, but the fixture only edits the lock and the committed recordings are already
+  `cheap`, so fresh recordings keep their keys (§3.16); it now asserts every recording is newer than the committed
+  ones. (3) Accept re-run by the lead, live: `wynd compile` in the M5 state is a no-op (nothing to integrate); in a
+  temporary clone with `edges.lock.yaml` and `cassettes/edges/` removed it skipped all six steps and committed only
+  the lock (same knobs and `check_hash`) and the process cassettes, examples 6/6, usage 20382→6926 tokens, $0.055.
+  `wynd test --live` 7/7 suites (job usage 19 calls, claude-code/cheap, $0.097). Replay `wynd test` with
+  `ANTHROPIC_API_KEY=sk-invalid-replay-check`: 7/7 suites, 19/19 `model.call` replays (4 edge), example 6
+  `take: false` → `needs_review`. `wynd trace` of a `wynd run --local` of example 6 shows `validate.done → save
+  check: NOT TAKEN`. `wynd optimise`: every unit keeps (R0). `wynd validate`: two `I201`, no warnings. Live pytest:
+  the edge-check worker test, the live smoke test and `test_optimise_live.py` pass.

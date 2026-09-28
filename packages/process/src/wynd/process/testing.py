@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from wynd.spec.plan import PlanStep, RunPlan
     from wynd.spec.proto_step import Example
 
-    from .jobs import JobContext, JobOutcome
+    from .jobs import JobContext, JobOutcome, JobUsage
     from .loader import StepPackage
     from .workspace import Workspace
 
@@ -216,15 +216,19 @@ def tests_status(runs: RunRegistry, ws: Workspace, pid: str, commit: str) -> dic
 def run_test_live_job(ctx: JobContext) -> JobOutcome:
     """`test_live` handler: `run_tests(mode="live")` in the checkout; commit the re-recorded cassettes (only suites
     that passed were promoted); then `run_tests(mode="replay")` recording results at the new closure HEAD. Succeeds
-    iff every live suite passed; the branch is published either way."""
+    iff every live suite passed; the branch is published either way. The job's usage is the live run's recorded
+    (non-replayed) `model.call` events, per `<provider>/<tier>` (SPEC §15)."""
     from .git import closure_head, reference_closure
     from .jobs import JobOutcome
     from .workspace import load_workspace
 
     pid = ctx.inputs["process"]
     venv_root = ctx.state_dir / "venvs"
+    events = ctx.scratch / "live-events.jsonl"
+    events.parent.mkdir(parents=True, exist_ok=True)
+    events.unlink(missing_ok=True)
     live = run_tests(load_workspace(ctx.workspace), pid, mode="live", commit=None, runs=None, venv_root=venv_root,
-                     scratch=ctx.scratch / "live", log=ctx.log)
+                     scratch=ctx.scratch / "live", env={**os.environ, "WYND_EVENTS_FILE": str(events)}, log=ctx.log)
     sha = ctx.commit(f"wynd test --live: re-record cassettes for {pid}", None)
     ws = load_workspace(ctx.workspace)                          # a fresh tree: the cassettes changed
     head = closure_head(ws.root, reference_closure(ws, pid))
@@ -237,7 +241,30 @@ def run_test_live_job(ctx: JobContext) -> JobOutcome:
         report=live.model_dump(mode="json"),
         artefacts={"replay": {"commit": head, "passed": replay.passed, "recorded": replay.recorded}},
         error=f"live tests failed: {', '.join(failing)}" if failing else None,
+        usage=_live_usage(events),
     )
+
+
+def _live_usage(events: Path) -> JobUsage:
+    """Totals and per `<provider>/<tier>` usage of the non-replayed `model.call` events in a `WYND_EVENTS_FILE`."""
+    from wynd.runtime.usage import Usage
+
+    from .jobs import JobUsage
+
+    total, by = Usage(), {}
+    lines = events.read_text(encoding="utf-8").splitlines() if events.is_file() else []
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("type") != "model.call" or event.get("cassette") == "replay" or not event.get("usage"):
+            continue
+        call = Usage.model_validate({**event["usage"], "calls": 1})
+        key = f"{event.get('provider')}/{event.get('tier')}"
+        total = total + call
+        by[key] = by.get(key, Usage()) + call
+    return JobUsage(**total.model_dump(), by=by)
 
 
 # --- step suites ----------------------------------------------------------------------------------------------------
