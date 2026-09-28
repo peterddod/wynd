@@ -133,8 +133,8 @@ def compile_closure(session: CompileSession, env: CompileEnv) -> SessionState:
                     if out.split is not None and not _apply_process_change(session, env, p, rs, out.split):
                         failed = True
             env.checkpoint(session.data)
-        if not awaiting:
-            _sync_edge_lock(env, p)
+        if not awaiting and _sync_edge_lock(session, env, p):
+            affected.add(p.id)                            # its (and its parents') examples record the checks
 
     if restore:
         _restore(env, restore)
@@ -255,8 +255,10 @@ def _apply_process_change(session: CompileSession, env: CompileEnv, lp: LoadedPr
     return True
 
 
-def _sync_edge_lock(env: CompileEnv, lp: LoadedProcess) -> None:
-    """M5 hook: refresh `edges.lock.yaml` for the process's agentic branches (written only when changed)."""
+def _sync_edge_lock(session: CompileSession, env: CompileEnv, lp: LoadedProcess) -> bool:
+    """M5 hook: refresh `edges.lock.yaml` for the process's agentic branches (written only when changed); -> whether
+    it changed, so the process-level record phase re-records the process's examples with the new checks (PLAN §7
+    item 7) even when every step is skipped."""
     from wynd.process.edges_lock import sync_edge_lock
     from wynd.spec.lockfiles import dump_lock
     from wynd.spec.process_doc import ProcessDoc
@@ -268,6 +270,9 @@ def _sync_edge_lock(env: CompileEnv, lp: LoadedProcess) -> None:
     lock, changed = sync_edge_lock(process_dir, doc)
     if changed:
         (process_dir / EDGES_LOCK_FILE).write_text(dump_lock(lock), encoding="utf-8")
+        session.data.report.process_changes.append({"type": "edges_lock", "process": lp.id,
+                                                    "branches": list(lock.edges)})
+    return changed
 
 
 def _process_phase(session: CompileSession, env: CompileEnv, lp: LoadedProcess, affected: set[str]) -> bool:

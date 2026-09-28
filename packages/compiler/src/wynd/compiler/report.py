@@ -74,6 +74,7 @@ class CompileReport(BaseModel):
     summary: str = ""
     steps: list[ReportStep] = []
     process_changes: list[dict[str, Any]] = []   # {"type": "split"|"unsplit", "process", "node", "added_node", ...}
+                                                 # | {"type": "edges_lock", "process", "branches"}
     proto_changes: list[dict[str, Any]] = []     # {"proto": <path>, "examples_added": n}
     integration_tests: dict[str, Any] | None = None   # {"passed", "failed", "cases"}
     validation: dict[str, list[Any]] = {"errors": [], "warnings": []}
@@ -191,6 +192,9 @@ def _change_text(change: dict[str, Any]) -> str:
         case "unsplit":
             removed = change.get("removed_node") or change.get("added_node")
             return f"removed node {removed} (split of {change.get('node')} undone)"
+        case "edges_lock":
+            branches = ", ".join(change.get("branches", [])) or "no agentic branches"
+            return f"edges.lock.yaml of {change.get('process')} locks {branches}"
         case other:
             return f"{other} of {change.get('node')}"
 

@@ -243,6 +243,41 @@ def test_skip_and_preserve(ws, compile_job, git, commit):
     assert outcome.report["process_changes"][0]["type"] == "unsplit"
 
 
+PLAIN_EDGE = "  - from: classify.done\n    to: parse\n    with: { text: '\"£12.50\"' }\n"
+AGENTIC_EDGE = ("  - from: classify.done\n    kind: agentic\n    to:\n      - step: parse\n        name: real\n"
+                "        check: The message is a genuine support request.\n        with: { text: '\"£12.50\"' }\n"
+                "      - $exit.spam\n")
+GENUINE = {"match": {"input": {"transition": {"from": "classify.done", "to": "parse"}}},
+           "output": {"take": True, "reason": "Ada Lovelace is a billing request."}}
+
+
+def test_a_new_agentic_branch_is_locked_and_recorded_with_every_step_skipped(ws, compile_job, git, commit):
+    """PLAN §7 item 7 (M5): a changed `edges.lock.yaml` re-records the process examples, so the result commit
+    replays the new check although no step compiles."""
+    _, outcome, _ = compile_job(ws, scripted(mini_calls()), accept_proposals=True)
+    fast_forward(git, ws, outcome.commit)
+    process = (ws / "processes/mini/process.yaml").read_text()
+    assert PLAIN_EDGE in process
+    script = json.loads((ws / "fake_provider.json").read_text())
+    commit(ws, "agentic classify edge", {"processes/mini/process.yaml": process.replace(PLAIN_EDGE, AGENTIC_EDGE),
+                                         "fake_provider.json": json.dumps({"responses": [
+                                             GENUINE, *script["responses"]]})})
+
+    _, outcome, record = compile_job(ws, scripted([]))
+    assert outcome.status == "succeeded", outcome.error
+    assert set(actions(outcome).values()) == {"skipped"}
+    assert outcome.report["process_changes"] == [{"type": "edges_lock", "process": "mini",
+                                                  "branches": ["classify.done[real]"]}]
+    assert outcome.report["integration_tests"]["passed"] == 2
+    files = files_at(git, ws, outcome.commit)
+    assert "processes/mini/edges.lock.yaml" in files
+    assert [f for f in files if f.startswith("processes/mini/cassettes/edges/")]
+    changed = git(ws, "diff", "--name-only", "HEAD", outcome.commit).split()
+    assert {f.split("/")[2] for f in changed} == {"edges.lock.yaml", "cassettes"}
+    message = git(ws, "log", "-1", "--format=%B", outcome.commit)
+    assert "edges.lock.yaml of mini locks classify.done[real]" in message
+
+
 def test_integration_failure_publishes_the_branch(make_repo, monkeypatch, compile_job, git):
     text = (FIXTURES / "ws_mini/processes/mini/process.yaml").read_text()
     wrong = text.replace("  - inputs: { name: win a prize now }\n    env: { NOTES_DIR: \"{tmp}/notes\" }\n"
