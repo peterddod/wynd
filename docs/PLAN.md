@@ -2813,7 +2813,19 @@ resolved differently from the reviewer's suggested fix, with the reason.
   forward.
 - **W10 not changed:** (1) Design saves go through JSON (web editor and chat `edit_design`), so whole-valued floats are
   written back as ints (`14250.0` → `14250`); JSON cannot tell them apart, the values stay equal and `match_outputs`
-  compares numbers with `isclose`. (2) The graph's `fitView` runs once at mount, before the inspector narrows the
-  canvas, so the leftmost node can start clipped; the pane pans and no fit control is specified. (3) Polls pause while
+  compares numbers with `isclose`. (2) Superseded by the W10 close-out below. (3) Polls pause while
   `document.hidden` (by design), so a browser automated in a background window must report the page visible.
   (4) A compile proposal's "why" text can carry a fenced YAML block, which the question card shows as plain text.
+- **W10 close-out:** (1) `GraphEditor` renders React Flow's `<Controls showInteractive={false} />` (zoom in/out, fit
+  view). `fitView` runs only at mount, before the inspector and chat narrow the canvas, so the fit button refits on
+  demand. Fitting stops at React Flow's default `minZoom` (0.5), so on a narrow canvas the dogfood graph still
+  overflows and the pane pans. (2) W10 not-changed items (1) and (4) stay open as optional polish; neither affects a
+  contract or a test. (3) Accept re-run by the lead: web `check` (522 tests) and `build`; `pytest packages/controller
+  packages/cli` 848 passed; full offline suite 4150 passed; `WYND_DOCKER=1 test_docker_e2e.py` 3 passed; clone HTTP
+  smoke; live chat turn (one commit, `steps.fix.runs < 3` → `< 4`, process.yaml only); real dogfood release (dev key)
+  fired once and ended `done`; the §17.6 checklist, items 1–7, in Chrome. (4) Checklist findings. A blur (focus
+  leaving the design surface) is a commit boundary, so opening the chat panel also commits. Item 7's `[design]` badge
+  needs a proto-step edit: a branch-only edit shows only `[released X · 1 behind]`, because `design` means a
+  proto-step with no matching compiled source. A release env binding `from_env` of a host directory path (e.g.
+  `RECORDS_DIR=/private/tmp/…`) is passed into the container as that path, where it may not be creatable. Bind a
+  container path by value instead.

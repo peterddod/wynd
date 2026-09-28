@@ -3,7 +3,7 @@
 // per-browser drag overrides. Every gesture is a thin wrapper over a tested `processDoc` op applied through the
 // session; selection is URL `sel`.
 import {
-  ReactFlow, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type OnBeforeDelete,
+  Controls, ReactFlow, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type OnBeforeDelete,
 } from "@xyflow/react";
 import { useMemo, useState, type KeyboardEvent, type ReactElement } from "react";
 import { useDesign, useMeta } from "../../api/context";
@@ -203,7 +203,10 @@ export function GraphEditor(): ReactElement | null {
           nodesFocusable
           edgesFocusable
           fitView
-        />
+        >
+          {/* fitView runs once at mount, before the inspector narrows the canvas; the fit button refits on demand. */}
+          <Controls showInteractive={false} />
+        </ReactFlow>
       </div>
       <AddStepDialog open={dialog?.kind === "add"} onClose={() => setDialog(null)} />
       {dialog?.kind === "rename" && <RenameStepDialog open step={dialog.step} onClose={() => setDialog(null)} />}
