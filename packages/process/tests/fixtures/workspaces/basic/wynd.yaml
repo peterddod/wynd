@@ -1,0 +1,6 @@
+# Fixture workspace: a flat and a hierarchical process id, a hierarchical step root, every use: form.
+process_roots:
+  - processes
+step_roots:
+  finance: teams/finance/steps
+  shared: { path: shared/steps }

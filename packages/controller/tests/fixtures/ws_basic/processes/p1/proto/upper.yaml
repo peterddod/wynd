@@ -1,0 +1,15 @@
+kind: proto_step
+name: upper
+instruction: Upper-case the text; blank text takes the empty exit.
+inputs:
+  text: string
+outputs:
+  done:
+    text: string
+  empty: {}
+exits: [done, empty]
+examples:
+  - inputs: { text: hello world }
+    outputs: { text: HELLO WORLD }
+  - inputs: { text: "   " }
+    exit: empty

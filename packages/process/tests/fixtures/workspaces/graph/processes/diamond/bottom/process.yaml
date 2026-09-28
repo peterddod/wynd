@@ -1,0 +1,5 @@
+kind: process
+name: bottom
+entry: work
+steps:
+  work: { use: ./steps/work }

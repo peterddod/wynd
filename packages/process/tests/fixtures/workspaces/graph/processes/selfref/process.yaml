@@ -1,0 +1,5 @@
+kind: process
+name: selfref
+entry: again
+steps:
+  again: { use: process:selfref }

@@ -1,0 +1,14 @@
+kind: process
+name: shorthand_with_error
+entry: read
+inputs:
+  pdf_path: path
+outputs:
+  text: string
+steps:
+  read: { use: ./steps/read_pdf }
+edges:
+  - from: read.done
+    to: $exit.done
+    with:
+      text: if steps.read.outputs.pages then steps.read.outputs.text elze ""

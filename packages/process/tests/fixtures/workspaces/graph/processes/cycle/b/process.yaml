@@ -1,0 +1,5 @@
+kind: process
+name: b
+entry: next
+steps:
+  next: { use: process:cycle/c }

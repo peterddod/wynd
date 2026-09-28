@@ -1,0 +1,32 @@
+kind: proto_step
+name: escalate_to_human
+instruction: |
+  Write an escalation ticket for a human reviewer into the queue directory, creating it if needed.
+  Name it "<run_id>.json" with every character outside A-Z, a-z, 0-9, ".", "_" and "-" replaced by "_".
+  The ticket is a JSON object with run_id, fields, errors, and reasons: the error messages, or when
+  there are no errors the single reason "routed to review by the process; see `wynd trace <run_id>`".
+  Write it with sorted keys, 2-space indent and a trailing newline, atomically. Return the ticket path.
+inputs:
+  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }
+  errors: [ { field: string, code: string, message: string, fixable: boolean } ]
+  queue_dir: path
+  run_id: string
+outputs:
+  ticket_path: path
+examples:
+  - inputs:
+      fields: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.0, currency: GBP, due_date: 2026-10-18 }
+      errors: [ { field: total, code: non_positive_total, message: "total -250.00 must be greater than zero", fixable: false } ]
+      queue_dir: "{tmp}/escalations"
+      run_id: run-test-1
+    outputs: { ticket_path: "{tmp}/escalations/run-test-1.json" }
+    exit: done
+  - inputs:
+      fields: { supplier: Umbrella Corporation, invoice_number: PF-88, total: 3400.0, currency: GBP, due_date: 2026-10-10 }
+      errors: []
+      queue_dir: "{tmp}/queue"
+      run_id: run-test-2
+    outputs: { ticket_path: "{tmp}/queue/run-test-2.json" }
+    exit: done
+env:
+  deps: []

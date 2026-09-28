@@ -1,0 +1,5 @@
+wynd: 1
+edges:
+  extract.done[save]:
+    check_hash: sha256:c8d0ce3c4758b2bc1a89daa04d5a40ac6701cad8390dbaff3aacd56f4855457d
+    tier: cheap

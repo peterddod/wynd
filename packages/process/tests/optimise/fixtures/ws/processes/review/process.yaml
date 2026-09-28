@@ -1,0 +1,19 @@
+kind: process
+name: review
+entry: judge
+inputs:
+  text: string
+outputs:
+  total: number
+steps:
+  judge: { use: ./steps/judge }
+edges:
+  - from: judge.done
+    kind: agentic
+    to:
+      - step: $exit.done
+        name: ok
+        check: The judged total is confident.
+        with: { total: steps.judge.outputs.total }
+      - step: $exit.done
+        with: { total: 0 }

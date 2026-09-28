@@ -1,0 +1,4 @@
+# Wynd workspace marker (spec 5.1). Sample workspace for the supplier-invoice dogfood.
+process_roots:
+  - processes
+step_roots: {}

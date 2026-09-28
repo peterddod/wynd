@@ -1,0 +1,14 @@
+kind: proto_step
+name: parse_amount
+instruction: Read the amount of money in a short text, as a plain number.
+inputs: { text: string }
+outputs: { amount: number }
+examples:
+  - inputs: { text: "£12.50" }
+    outputs: { amount: 12.5 }
+  - inputs: { text: 12.50 GBP }
+    outputs: { amount: 12.5 }
+  - inputs: { text: EUR 3 }
+    outputs: { amount: 3 }
+  - inputs: { text: twelve pounds fifty }     # words: needs judgement
+    outputs: { amount: 12.5 }

@@ -1,0 +1,10 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "L001", "severity": "error", "process": "main", "path": "", "file": "processes/main/steps/second/helpers.py"},
+    {"code": "L002", "severity": "error", "process": "main", "path": "", "file": "processes/main/steps/second/helpers.py"},
+    {"code": "L003", "severity": "error", "process": "main", "path": "", "file": "processes/main/steps/second/second.py"},
+    {"code": "L004", "severity": "error", "process": "main", "path": "", "file": "processes/main/steps/second/second.py"},
+    {"code": "L005", "severity": "error", "process": "main", "path": "", "file": "processes/main/steps/second/second.py"}
+  ]
+}

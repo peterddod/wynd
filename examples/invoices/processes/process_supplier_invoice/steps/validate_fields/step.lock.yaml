@@ -1,0 +1,167 @@
+# Hand-written step (M1 dogfood); the review surface for this package.
+# `wynd validate process_supplier_invoice --sync-interfaces` refreshes the interface snapshot.
+wynd: 1
+name: validate_fields
+kind: deterministic
+entrypoint: validate_fields:ValidateFields
+proto_hash: sha256:802b5c9dd3ce2285446b6bc84478c836e79714a789faa4cec86d6c437db3f01a
+builtin_tools: []
+retries:
+  run: 0
+  validation: 0
+  tool: 0
+effects: []
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    $defs:
+      InvoiceFields:
+        properties:
+          supplier:
+            title: Supplier
+            type: string
+          invoice_number:
+            title: Invoice Number
+            type: string
+          total:
+            title: Total
+            type: number
+          currency:
+            title: Currency
+            type: string
+          due_date:
+            format: date
+            title: Due Date
+            type: string
+        required:
+        - supplier
+        - invoice_number
+        - total
+        - currency
+        - due_date
+        title: InvoiceFields
+        type: object
+    properties:
+      fields:
+        $ref: '#/$defs/InvoiceFields'
+    required:
+    - fields
+    title: Input
+    type: object
+  outputs:
+    done:
+      $defs:
+        FieldError:
+          properties:
+            field:
+              title: Field
+              type: string
+            code:
+              title: Code
+              type: string
+            message:
+              title: Message
+              type: string
+            fixable:
+              title: Fixable
+              type: boolean
+          required:
+          - field
+          - code
+          - message
+          - fixable
+          title: FieldError
+          type: object
+        InvoiceFields:
+          properties:
+            supplier:
+              title: Supplier
+              type: string
+            invoice_number:
+              title: Invoice Number
+              type: string
+            total:
+              title: Total
+              type: number
+            currency:
+              title: Currency
+              type: string
+            due_date:
+              format: date
+              title: Due Date
+              type: string
+          required:
+          - supplier
+          - invoice_number
+          - total
+          - currency
+          - due_date
+          title: InvoiceFields
+          type: object
+        InvoiceRecord:
+          properties:
+            key:
+              title: Key
+              type: string
+            supplier:
+              title: Supplier
+              type: string
+            invoice_number:
+              title: Invoice Number
+              type: string
+            total:
+              title: Total
+              type: number
+            currency:
+              title: Currency
+              type: string
+            due_date:
+              format: date
+              title: Due Date
+              type: string
+          required:
+          - key
+          - supplier
+          - invoice_number
+          - total
+          - currency
+          - due_date
+          title: InvoiceRecord
+          type: object
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        valid:
+          title: Valid
+          type: boolean
+        fixable:
+          title: Fixable
+          type: boolean
+        errors:
+          items:
+            $ref: '#/$defs/FieldError'
+          title: Errors
+          type: array
+        fields:
+          $ref: '#/$defs/InvoiceFields'
+        record:
+          $ref: '#/$defs/InvoiceRecord'
+      required:
+      - valid
+      - fixable
+      - errors
+      - fields
+      - record
+      title: Output
+      type: object

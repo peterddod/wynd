@@ -1,0 +1,16 @@
+kind: proto_step
+name: check
+instruction: Check the value.
+inputs:
+  value: string
+exits: [ok, bad]
+outputs:
+  ok: { value: string }
+  bad: { reason: string }
+examples:
+  - inputs: { value: A }
+    outputs: { value: A }
+    exit: ok
+  - inputs: { value: "" }
+    outputs: { reason: empty }
+    exit: bad

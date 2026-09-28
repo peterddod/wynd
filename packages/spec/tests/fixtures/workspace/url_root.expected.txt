@@ -1,0 +1,1 @@
+workspace/url_root.yaml:3:18: error[E-ROOTS] step_roots.vendor.url: url: roots are reserved; v1 resolves local paths only

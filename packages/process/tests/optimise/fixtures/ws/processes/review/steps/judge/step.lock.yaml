@@ -1,0 +1,4 @@
+wynd: 1
+name: judge
+kind: agentic
+entrypoint: judge:Judge

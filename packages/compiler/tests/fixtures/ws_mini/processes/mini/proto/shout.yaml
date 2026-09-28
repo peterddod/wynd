@@ -1,0 +1,9 @@
+kind: proto_step
+name: shout
+instruction: Write the text in upper case with the awk command-line program.
+inputs: { text: string }
+outputs: { text: string }
+exit_codes: { 0: done, "*": error }
+examples:
+  - inputs: { text: Ada Lovelace }
+    outputs: { text: ADA LOVELACE }

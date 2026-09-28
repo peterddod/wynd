@@ -1,0 +1,5 @@
+wynd: 1
+name: read_pdf
+kind: deterministic
+entrypoint: read_pdf:ReadPdf
+tier: strong

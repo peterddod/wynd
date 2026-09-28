@@ -1,0 +1,61 @@
+[project]
+name = "wynd-workspace"
+version = "0.0.0"
+requires-python = ">=3.12"
+# Every member is listed so that a plain (exact) `uv sync` keeps all of them installed.
+dependencies = [
+  "wynd-spec",
+  "wynd-runtime",
+  "wynd-process",
+  "wynd-compiler",
+  "wynd-controller",
+  "wynd-cli",
+  "wynd-kube",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pypdf>=6,<7",
+  "claude-agent-sdk>=0.2.157,<0.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+wynd-spec = { workspace = true }
+wynd-runtime = { workspace = true }
+wynd-process = { workspace = true }
+wynd-compiler = { workspace = true }
+wynd-controller = { workspace = true }
+wynd-cli = { workspace = true }
+wynd-kube = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+exclude = ["packages/web"]
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "--import-mode=importlib"]
+testpaths = [
+  "packages/spec/tests",
+  "packages/runtime/tests",
+  "packages/process/tests",
+  "packages/compiler/tests",
+  "packages/controller/tests",
+  "packages/cli/tests",
+  "packages/kube/tests",
+  "tests",
+  "examples/invoices/tools",
+  "examples/invoices/tests",
+]
+pythonpath = [
+  "packages/runtime/tests",
+  "packages/process/tests",
+  "packages/compiler/tests",
+  "packages/controller/tests",
+  "packages/cli/tests",
+  "packages/kube/tests",
+]
+norecursedirs = ["steps", "node_modules", ".wynd", ".venv", "fixtures", "design"]

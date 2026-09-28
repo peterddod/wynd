@@ -1,0 +1,8 @@
+wynd: 1
+edges:
+  validate.done[save]:
+    check_hash: sha256:e785e2325f6035319101391fcc4fc808d4682eb5141512e0f403051b1998dafd
+    tier: cheap
+    thinking: low
+    retries: 2
+    timeout_s: 120

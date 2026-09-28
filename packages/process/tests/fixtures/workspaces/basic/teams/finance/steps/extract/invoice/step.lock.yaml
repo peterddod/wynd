@@ -1,0 +1,5 @@
+# Hand-written, proto-less step without an interface snapshot.
+wynd: 1
+name: invoice
+kind: deterministic
+entrypoint: invoice:ExtractInvoice

@@ -1,0 +1,6 @@
+# Recorded model calls are tracked with git-lfs (spec 6.5)
+**/cassettes/** filter=lfs diff=lfs merge=lfs -text
+# ...but not the runtime's own cassettes source package
+packages/runtime/src/wynd/runtime/cassettes/** !filter !diff !merge !text
+# Sample fixtures
+*.pdf binary

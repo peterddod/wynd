@@ -1,0 +1,61 @@
+// Wynd expression language (wynd.spec.expr) -- LALR(1)
+?start: expr
+
+?expr: conditional
+     | or_expr
+
+conditional: "if" expr "then" expr ("elif" expr "then" expr)* "else" expr
+
+?or_expr: and_expr
+        | or_expr "or" and_expr          -> or_
+
+?and_expr: not_expr
+         | and_expr "and" not_expr       -> and_
+
+?not_expr: comparison
+         | "not" not_expr                -> not_
+
+?comparison: sum
+           | sum "==" sum                -> eq
+           | sum "!=" sum                -> ne
+           | sum "<" sum                 -> lt
+           | sum "<=" sum                -> le
+           | sum ">" sum                 -> gt
+           | sum ">=" sum                -> ge
+           | sum "in" sum                -> in_
+           | sum "not" "in" sum          -> not_in
+
+?sum: product
+    | sum "+" product                    -> add
+    | sum "-" product                    -> sub
+
+?product: unary
+        | product "*" unary              -> mul
+        | product "/" unary              -> div
+        | product "%" unary              -> mod
+
+?unary: postfix
+      | "-" unary                        -> neg
+
+?postfix: atom
+        | postfix "." NAME               -> member
+        | postfix "[" expr "]"           -> index
+
+?atom: STRING                            -> string
+     | NUMBER                            -> number
+     | "true"                            -> true
+     | "false"                           -> false
+     | "null"                            -> null
+     | NAME                              -> name
+     | NAME "(" [expr ("," expr)* ","?] ")"   -> call
+     | "[" [expr ("," expr)* ","?] "]"        -> list_
+     | "{" [pair ("," pair)* ","?] "}"        -> object_
+     | "(" expr ")"
+
+pair: (NAME | STRING) ":" expr
+
+NAME: /[A-Za-z_][A-Za-z0-9_]*/
+STRING: /"(?:[^"\\\n]|\\.)*"/ | /'(?:[^'\\\n]|\\.)*'/
+NUMBER: /(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/
+
+%ignore /[ \t\r\n]+/

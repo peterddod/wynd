@@ -1,0 +1,1 @@
+locks/tier_on_deterministic.yaml:5:7: error[E-LOCK] tier: tier is only allowed on agentic steps (kind is deterministic)

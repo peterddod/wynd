@@ -1,0 +1,883 @@
+[
+  {
+    "v": 1,
+    "seq": 1,
+    "ts": "2026-09-27T10:15:00.001000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "run.start",
+    "process": "process_supplier_invoice",
+    "mode": "local",
+    "inputs": {
+      "pdf_path": "/home/dev/invoices/processes/process_supplier_invoice/examples/initech_inv_5521.pdf"
+    },
+    "commit": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+    "runtime_version": "0.1.0",
+    "workspace": "/home/dev/invoices/.wynd/workspaces/run_20260927T101500000_1c2d3e",
+    "cassette": "live",
+    "metadata": {
+      "trigger": "manual",
+      "release_id": null,
+      "target": {
+        "kind": "local"
+      }
+    }
+  },
+  {
+    "v": 1,
+    "seq": 2,
+    "ts": "2026-09-27T10:15:00.002000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.start",
+    "step": "read",
+    "name": "read",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "id": "process_supplier_invoice#read_pdf",
+    "kind": "deterministic",
+    "run": 1,
+    "role": "node",
+    "via": null,
+    "inputs": {
+      "pdf_path": "/home/dev/invoices/processes/process_supplier_invoice/examples/initech_inv_5521.pdf"
+    },
+    "venv": "834b35721f862a2f",
+    "span": 2
+  },
+  {
+    "v": 1,
+    "seq": 3,
+    "ts": "2026-09-27T10:15:00.003000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "worker.start",
+    "step": "read",
+    "span": 2,
+    "parent": null,
+    "venv": "834b35721f862a2f",
+    "pid": 41233,
+    "startup_ms": 212.4
+  },
+  {
+    "v": 1,
+    "seq": 4,
+    "ts": "2026-09-27T10:15:00.005000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.end",
+    "step": "read",
+    "span": 2,
+    "parent": null,
+    "run": 1,
+    "kind": "deterministic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00",
+      "pages": 1
+    },
+    "summary": {
+      "step": "read",
+      "exit": "done",
+      "key_outputs": {
+        "text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00",
+        "pages": 1
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:15:00.002000Z",
+      "ended_at": "2026-09-27T10:15:00.005000Z",
+      "duration_ms": 1.9,
+      "worker_ms": 1.14,
+      "pre_ms": 0.0004,
+      "run_ms": 0.95,
+      "post_ms": 0.0006
+    },
+    "usage": null,
+    "model": null,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 5,
+    "ts": "2026-09-27T10:15:00.006000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "from": "read.done",
+    "branch": 0,
+    "name": null,
+    "to": "extract",
+    "kind": "deterministic",
+    "with": {
+      "invoice_text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00"
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 6,
+    "ts": "2026-09-27T10:15:00.007000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.start",
+    "step": "extract",
+    "name": "extract",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "id": "process_supplier_invoice#extract_invoice_fields",
+    "kind": "agentic",
+    "run": 1,
+    "role": "node",
+    "via": "read.done[0]",
+    "inputs": {
+      "invoice_text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00"
+    },
+    "venv": "a5e6ce4d22958e37",
+    "span": 6
+  },
+  {
+    "v": 1,
+    "seq": 7,
+    "ts": "2026-09-27T10:15:05.006999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "model.call",
+    "step": "extract",
+    "span": 6,
+    "parent": null,
+    "provider": "claude-code",
+    "kind": "agent",
+    "tier": "cheap",
+    "thinking": "low",
+    "model_id": "claude-haiku-4-5-20251001",
+    "n": 1,
+    "attempt": 1,
+    "restart": 0,
+    "reason": "initial",
+    "outcome": "valid",
+    "errors": null,
+    "request_hash": "da8d6d1f5c10cff9af940b4d46899255",
+    "request": {
+      "instruction": "Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.\n\nTreat any document that states an amount to pay or to credit as an invoice, including pro forma\ninvoices and credit notes; use not_an_invoice only for documents with no amount due at all, such\nas shipping notices, marketing or letters.\n\nsupplier: the supplier's name exactly as printed at the top of the document.\ninvoice_number: the document's own number exactly as printed (invoice, credit note or pro forma\nnumber), not a customer, order or tax registration number.\ntotal: the final amount due as a number without currency symbols or thousands separators;\nnegative for credits.\ncurrency: the ISO 4217 code if the document states one or the symbol is unambiguous (£ is GBP,\n€ is EUR); otherwise the symbol exactly as printed, for example \"$\".\ndue_date: the payment due date (or the refund-by or valid-until date if there is no due date).\n",
+      "context": {},
+      "input": {},
+      "tools": [],
+      "mcp": [],
+      "builtin_tools": [],
+      "max_turns": 25,
+      "continuation": null
+    },
+    "messages_new": null,
+    "response": {
+      "structured_output": {
+        "exit": "done",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      },
+      "note": ""
+    },
+    "usage": {
+      "input_tokens": 2104,
+      "output_tokens": 571,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00497,
+      "latency_ms": 6423.1,
+      "calls": 1
+    },
+    "startup_ms": 531.2,
+    "cost_basis": "list",
+    "cassette": "live"
+  },
+  {
+    "v": 1,
+    "seq": 8,
+    "ts": "2026-09-27T10:15:05.008999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.end",
+    "step": "extract",
+    "span": 6,
+    "parent": null,
+    "run": 1,
+    "kind": "agentic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "supplier": "Initech Canada Inc.",
+      "invoice_number": "IC-5521",
+      "total": 980.0,
+      "currency": "$",
+      "due_date": "2026-10-20"
+    },
+    "summary": {
+      "step": "extract",
+      "exit": "done",
+      "key_outputs": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:15:00.007000Z",
+      "ended_at": "2026-09-27T10:15:05.008999Z",
+      "duration_ms": 6702.3,
+      "worker_ms": 4021.38,
+      "pre_ms": 0.0004,
+      "run_ms": 3351.15,
+      "post_ms": 0.0006
+    },
+    "usage": {
+      "input_tokens": 2104,
+      "output_tokens": 571,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00497,
+      "latency_ms": 6423.1,
+      "calls": 1
+    },
+    "model": {
+      "provider": "claude-code",
+      "model_id": "claude-haiku-4-5-20251001",
+      "tier": "cheap",
+      "thinking": "low"
+    },
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 9,
+    "ts": "2026-09-27T10:15:05.009999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "from": "extract.done",
+    "branch": 0,
+    "name": null,
+    "to": "validate",
+    "kind": "deterministic",
+    "with": {
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      }
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 10,
+    "ts": "2026-09-27T10:15:05.011000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.start",
+    "step": "validate",
+    "name": "validate",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "id": "process_supplier_invoice#validate_fields",
+    "kind": "deterministic",
+    "run": 1,
+    "role": "node",
+    "via": "extract.done[0]",
+    "inputs": {
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      }
+    },
+    "venv": "60656b980203ced0",
+    "span": 10
+  },
+  {
+    "v": 1,
+    "seq": 11,
+    "ts": "2026-09-27T10:15:05.012999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.end",
+    "step": "validate",
+    "span": 10,
+    "parent": null,
+    "run": 1,
+    "kind": "deterministic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "valid": false,
+      "fixable": true,
+      "errors": [
+        {
+          "field": "currency",
+          "code": "unsupported_currency",
+          "message": "currency '$' is not a supported ISO 4217 code",
+          "fixable": true
+        }
+      ],
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      },
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      }
+    },
+    "summary": {
+      "step": "validate",
+      "exit": "done",
+      "key_outputs": {
+        "valid": false,
+        "fixable": true,
+        "errors": [
+          {
+            "field": "currency",
+            "code": "unsupported_currency",
+            "message": "currency '$' is not a supported ISO 4217 code",
+            "fixable": true
+          }
+        ],
+        "fields": {
+          "supplier": "Initech Canada Inc.",
+          "invoice_number": "IC-5521",
+          "total": 980.0,
+          "currency": "$",
+          "due_date": "2026-10-20"
+        },
+        "record": {
+          "key": "initech-canada-inc__IC-5521",
+          "supplier": "Initech Canada Inc.",
+          "invoice_number": "IC-5521",
+          "total": 980.0,
+          "currency": "$",
+          "due_date": "2026-10-20"
+        }
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:15:05.011000Z",
+      "ended_at": "2026-09-27T10:15:05.012999Z",
+      "duration_ms": 1.6,
+      "worker_ms": 0.96,
+      "pre_ms": 0.0004,
+      "run_ms": 0.8,
+      "post_ms": 0.0006
+    },
+    "usage": null,
+    "model": null,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 12,
+    "ts": "2026-09-27T10:15:05.014000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "from": "validate.done",
+    "branch": 1,
+    "name": null,
+    "to": "fix",
+    "kind": "deterministic",
+    "with": {
+      "invoice_text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00",
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      },
+      "errors": [
+        {
+          "field": "currency",
+          "code": "unsupported_currency",
+          "message": "currency '$' is not a supported ISO 4217 code",
+          "fixable": true
+        }
+      ]
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 13,
+    "ts": "2026-09-27T10:15:05.015000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.start",
+    "step": "fix",
+    "name": "fix",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "id": "process_supplier_invoice#fix_fields",
+    "kind": "agentic",
+    "run": 1,
+    "role": "node",
+    "via": "validate.done[1]",
+    "inputs": {
+      "invoice_text": "Initech Canada Inc.\n200 King Street West, Toronto, ON M5H 3T4, Canada\nGST/HST registration: 123456789 RT0001\nINVOICE\nInvoice #: IC-5521\nIssued: 20 September 2026\nDue: 20 October 2026\nBill to: Wynd Test Ltd\nTPS report cover sheets (1,000)      $780.00\nPrinter maintenance      $200.00\nTotal: $980.00",
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "$",
+        "due_date": "2026-10-20"
+      },
+      "errors": [
+        {
+          "field": "currency",
+          "code": "unsupported_currency",
+          "message": "currency '$' is not a supported ISO 4217 code",
+          "fixable": true
+        }
+      ]
+    },
+    "venv": "a5e6ce4d22958e37",
+    "span": 13
+  },
+  {
+    "v": 1,
+    "seq": 14,
+    "ts": "2026-09-27T10:15:10.015000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "model.call",
+    "step": "fix",
+    "span": 13,
+    "parent": null,
+    "provider": "claude-code",
+    "kind": "agent",
+    "tier": "cheap",
+    "thinking": "low",
+    "model_id": "claude-haiku-4-5-20251001",
+    "n": 1,
+    "attempt": 1,
+    "restart": 0,
+    "reason": "initial",
+    "outcome": "valid",
+    "errors": null,
+    "request_hash": "6cd6f100b3e8a6778c5a85a251034d30",
+    "request": {
+      "instruction": "Correct invoice fields that failed validation by re-reading the invoice text.\nChange only the fields named in errors; copy every other field unchanged. The invoice text is the\nonly source of truth. For an ambiguous currency symbol such as \"$\", decide the ISO 4217 code from\nthe supplier's address or other currency mentions in the text. If the text does not support a\ncorrection, return the field unchanged; the validator will then escalate to a human.\n",
+      "context": {},
+      "input": {},
+      "tools": [],
+      "mcp": [],
+      "builtin_tools": [],
+      "max_turns": 25,
+      "continuation": null
+    },
+    "messages_new": null,
+    "response": {
+      "structured_output": {
+        "exit": "done",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      },
+      "note": ""
+    },
+    "usage": {
+      "input_tokens": 2381,
+      "output_tokens": 402,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00439,
+      "latency_ms": 5120.4,
+      "calls": 1
+    },
+    "startup_ms": 531.2,
+    "cost_basis": "list",
+    "cassette": "live"
+  },
+  {
+    "v": 1,
+    "seq": 15,
+    "ts": "2026-09-27T10:15:10.017000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.end",
+    "step": "fix",
+    "span": 13,
+    "parent": null,
+    "run": 1,
+    "kind": "agentic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "supplier": "Initech Canada Inc.",
+      "invoice_number": "IC-5521",
+      "total": 980.0,
+      "currency": "CAD",
+      "due_date": "2026-10-20"
+    },
+    "summary": {
+      "step": "fix",
+      "exit": "done",
+      "key_outputs": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:15:05.015000Z",
+      "ended_at": "2026-09-27T10:15:10.017000Z",
+      "duration_ms": 5388.0,
+      "worker_ms": 3232.8,
+      "pre_ms": 0.0004,
+      "run_ms": 2694.0,
+      "post_ms": 0.0006
+    },
+    "usage": {
+      "input_tokens": 2381,
+      "output_tokens": 402,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00439,
+      "latency_ms": 5120.4,
+      "calls": 1
+    },
+    "model": {
+      "provider": "claude-code",
+      "model_id": "claude-haiku-4-5-20251001",
+      "tier": "cheap",
+      "thinking": "low"
+    },
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 16,
+    "ts": "2026-09-27T10:15:10.018000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "from": "fix.done",
+    "branch": 0,
+    "name": null,
+    "to": "validate",
+    "kind": "deterministic",
+    "with": {
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      }
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 17,
+    "ts": "2026-09-27T10:15:10.019000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.start",
+    "step": "validate",
+    "name": "validate",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "id": "process_supplier_invoice#validate_fields",
+    "kind": "deterministic",
+    "run": 2,
+    "role": "node",
+    "via": "fix.done[0]",
+    "inputs": {
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      }
+    },
+    "venv": "60656b980203ced0",
+    "span": 17
+  },
+  {
+    "v": 1,
+    "seq": 18,
+    "ts": "2026-09-27T10:15:10.021000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.end",
+    "step": "validate",
+    "span": 17,
+    "parent": null,
+    "run": 2,
+    "kind": "deterministic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "valid": true,
+      "fixable": false,
+      "errors": [],
+      "fields": {
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      },
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      }
+    },
+    "summary": {
+      "step": "validate",
+      "exit": "done",
+      "key_outputs": {
+        "valid": true,
+        "fixable": false,
+        "errors": [],
+        "fields": {
+          "supplier": "Initech Canada Inc.",
+          "invoice_number": "IC-5521",
+          "total": 980.0,
+          "currency": "CAD",
+          "due_date": "2026-10-20"
+        },
+        "record": {
+          "key": "initech-canada-inc__IC-5521",
+          "supplier": "Initech Canada Inc.",
+          "invoice_number": "IC-5521",
+          "total": 980.0,
+          "currency": "CAD",
+          "due_date": "2026-10-20"
+        }
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:15:10.019000Z",
+      "ended_at": "2026-09-27T10:15:10.021000Z",
+      "duration_ms": 1.4,
+      "worker_ms": 0.84,
+      "pre_ms": 0.0004,
+      "run_ms": 0.7,
+      "post_ms": 0.0006
+    },
+    "usage": null,
+    "model": null,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 19,
+    "ts": "2026-09-27T10:15:10.022000Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "from": "validate.done",
+    "branch": 0,
+    "name": null,
+    "to": "save",
+    "kind": "deterministic",
+    "with": {
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      },
+      "dest": "/data/records"
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 20,
+    "ts": "2026-09-27T10:15:10.022999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.start",
+    "step": "save",
+    "name": "save",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "id": "process_supplier_invoice#save_record",
+    "kind": "deterministic",
+    "run": 1,
+    "role": "node",
+    "via": "validate.done[0]",
+    "inputs": {
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      },
+      "dest": "/data/records"
+    },
+    "venv": "60656b980203ced0",
+    "span": 20
+  },
+  {
+    "v": 1,
+    "seq": 21,
+    "ts": "2026-09-27T10:15:10.023999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.log",
+    "step": "save",
+    "span": 20,
+    "parent": null,
+    "level": "INFO",
+    "stream": "logger",
+    "message": "wrote /data/records/initech-canada-inc__IC-5521.json"
+  },
+  {
+    "v": 1,
+    "seq": 22,
+    "ts": "2026-09-27T10:15:10.025999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "step.end",
+    "step": "save",
+    "span": 20,
+    "parent": null,
+    "run": 1,
+    "kind": "deterministic",
+    "exit": "done",
+    "timed_out": false,
+    "outputs": {
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      },
+      "path": "/data/records/initech-canada-inc__IC-5521.json"
+    },
+    "summary": {
+      "step": "save",
+      "exit": "done",
+      "key_outputs": {
+        "record": {
+          "key": "initech-canada-inc__IC-5521",
+          "supplier": "Initech Canada Inc.",
+          "invoice_number": "IC-5521",
+          "total": 980.0,
+          "currency": "CAD",
+          "due_date": "2026-10-20"
+        },
+        "path": "/data/records/initech-canada-inc__IC-5521.json"
+      },
+      "note": ""
+    },
+    "attempts": 1,
+    "validation_failures": 0,
+    "timings": {
+      "started_at": "2026-09-27T10:15:10.022999Z",
+      "ended_at": "2026-09-27T10:15:10.025999Z",
+      "duration_ms": 1.1,
+      "worker_ms": 0.66,
+      "pre_ms": 0.0004,
+      "run_ms": 0.55,
+      "post_ms": 0.0006
+    },
+    "usage": null,
+    "model": null,
+    "replayed": false
+  },
+  {
+    "v": 1,
+    "seq": 23,
+    "ts": "2026-09-27T10:15:10.026999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "edge.taken",
+    "process": "process_supplier_invoice",
+    "parent": null,
+    "from": "save.done",
+    "branch": 0,
+    "name": null,
+    "to": "$exit.done",
+    "kind": "deterministic",
+    "with": {
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      }
+    },
+    "taken": 1
+  },
+  {
+    "v": 1,
+    "seq": 24,
+    "ts": "2026-09-27T10:15:10.027999Z",
+    "run_id": "run_20260927T101500000_1c2d3e",
+    "type": "run.end",
+    "exit": "done",
+    "outputs": {
+      "record": {
+        "key": "initech-canada-inc__IC-5521",
+        "supplier": "Initech Canada Inc.",
+        "invoice_number": "IC-5521",
+        "total": 980.0,
+        "currency": "CAD",
+        "due_date": "2026-10-20"
+      }
+    },
+    "error": null,
+    "status": "succeeded",
+    "duration_ms": 12311.7,
+    "workspace_kept": false,
+    "workspace": null,
+    "usage": {
+      "input_tokens": 4485,
+      "output_tokens": 973,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_usd": 0.00936,
+      "latency_ms": 11543.5,
+      "calls": 2
+    },
+    "finally_errors": []
+  }
+]

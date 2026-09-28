@@ -1,0 +1,10 @@
+kind: process
+name: to_list_with_edge_with
+entry: validate
+steps:
+  validate: { use: ./steps/validate_fields }
+  save: { use: ./steps/save_record }
+edges:
+  - from: validate.done
+    to: [save]
+    with: { record: steps.validate.outputs.record }

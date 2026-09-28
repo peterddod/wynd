@@ -1,0 +1,56 @@
+kind: proto_step
+name: fix_fields
+instruction: |
+  Correct invoice fields that failed validation by re-reading the invoice text.
+  Change only the fields named in errors; copy every other field unchanged. The invoice text is the
+  only source of truth. For an ambiguous currency symbol such as "$", decide the ISO 4217 code from
+  the supplier's address or other currency mentions in the text. If the text does not support a
+  correction, return the field unchanged; the validator will then escalate to a human.
+inputs:
+  invoice_text: string
+  fields: { supplier: string, invoice_number: string, total: number, currency: string, due_date: date }
+  errors: [ { field: string, code: string, message: string, fixable: boolean } ]
+outputs:
+  supplier: string
+  invoice_number: string
+  total: number
+  currency: string
+  due_date: date
+examples:
+  - inputs:
+      invoice_text: |-
+        Initech Canada Inc.
+        200 King Street West, Toronto, ON M5H 3T4, Canada
+        GST/HST registration: 123456789 RT0001
+        INVOICE
+        Invoice #: IC-5521
+        Issued: 20 September 2026
+        Due: 20 October 2026
+        Bill to: Wynd Test Ltd
+        TPS report cover sheets (1,000)      $780.00
+        Printer maintenance      $200.00
+        Total: $980.00
+      fields: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: "$", due_date: 2026-10-20 }
+      errors: [ { field: currency, code: unsupported_currency, message: "currency '$' is not a supported ISO 4217 code", fixable: true } ]
+    outputs: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.0, currency: CAD, due_date: 2026-10-20 }
+    exit: done
+  - inputs:
+      invoice_text: |-
+        North Wind Traders
+        Supplier ref: SUP/2026/0098
+        Amount payable: EUR 312.40 by 30 November 2026
+      fields: { supplier: North Wind Traders, invoice_number: "", total: 312.4, currency: EUR, due_date: 2026-11-30 }
+      errors: [ { field: invoice_number, code: bad_invoice_number, message: "invoice_number '' must be 2-32 characters of A-Z, 0-9, '/' or '-'", fixable: true } ]
+    outputs: { supplier: North Wind Traders, invoice_number: SUP/2026/0098, total: 312.4, currency: EUR, due_date: 2026-11-30 }
+    exit: done
+  - inputs:                                   # edge case: text cannot support a fix -> unchanged
+      invoice_text: |-
+        Arcade Tokens Co
+        Invoice AT-7
+        Total: 50.00 credits, due 1 December 2026
+      fields: { supplier: Arcade Tokens Co, invoice_number: AT-7, total: 50.0, currency: CREDITS, due_date: 2026-12-01 }
+      errors: [ { field: currency, code: unsupported_currency, message: "currency 'CREDITS' is not a supported ISO 4217 code", fixable: true } ]
+    outputs: { supplier: Arcade Tokens Co, invoice_number: AT-7, total: 50.0, currency: CREDITS, due_date: 2026-12-01 }
+    exit: done
+env:
+  deps: []

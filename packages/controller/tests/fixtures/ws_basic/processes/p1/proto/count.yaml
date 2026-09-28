@@ -1,0 +1,12 @@
+kind: proto_step
+name: count
+instruction: Count the words of the text and save it as count.txt under dest.
+inputs:
+  text: string
+  dest: string
+outputs:
+  words: integer
+  path: string
+examples:
+  - inputs: { text: HELLO WORLD, dest: "{tmp}/out" }
+    outputs: { words: 2 }

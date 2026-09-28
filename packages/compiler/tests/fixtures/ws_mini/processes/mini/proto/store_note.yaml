@@ -1,0 +1,8 @@
+kind: proto_step
+name: store_note
+instruction: Write the note to a text file named after it in the destination directory and return the file's path.
+inputs: { note: string, dest: path }
+outputs: { path: path }
+examples:
+  - inputs: { note: ADA LOVELACE, dest: "{tmp}/notes" }
+    outputs: { path: "{tmp}/notes/ADA LOVELACE.txt" }

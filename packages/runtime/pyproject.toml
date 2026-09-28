@@ -1,0 +1,34 @@
+[project]
+name = "wynd-runtime"
+version = "0.1.0"
+description = "Wynd runtime: step API, executor, venv workers, providers, cassettes, storage and the run-API supervisor"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = ["wynd-spec==0.1.0"]
+
+[project.scripts]
+wynd-supervisor = "wynd.runtime.supervisor.main:main"
+
+[project.entry-points."wynd.providers"]
+claude-code = "wynd.runtime.providers.claude_code:ClaudeCodeProvider"
+anthropic = "wynd.runtime.providers.anthropic:AnthropicProvider"
+fake = "wynd.runtime.providers.fake:FakeProvider"
+
+[project.entry-points."wynd.storage"]
+"workspace.file" = "wynd.runtime.storage.local:workspace_file"
+"trace.jsonl" = "wynd.runtime.storage.local:trace_jsonl"
+"runs.file" = "wynd.runtime.storage.local:runs_file"
+"registry.file" = "wynd.runtime.storage.local:registry_file"
+"registry.env" = "wynd.runtime.storage.local:registry_env"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wynd"]
+
+[tool.uv.sources]
+wynd-spec = { workspace = true }

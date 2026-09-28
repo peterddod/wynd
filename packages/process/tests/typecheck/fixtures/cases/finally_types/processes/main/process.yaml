@@ -1,0 +1,26 @@
+kind: process
+name: main
+entry: first
+env:
+  vars: { OUT_DIR: where results go }
+inputs:
+  text: string
+  count: integer
+outputs:
+  result: string
+steps:
+  first:  { use: ./steps/first }
+  second: { use: ./steps/second }
+  notify: { use: ./steps/notify }
+  audit:  { use: ./steps/second }
+edges:
+  - from: first.done
+    to: second
+    with: { value: steps.first.outputs.value, amount: steps.first.outputs.total }
+  - from: second.done
+    to: $exit.done
+    with: { result: steps.second.outputs.result }
+finally:
+  - step: notify
+  - step: audit
+    with: { value: 'default(steps.first.outputs.size, 0)', amount: 'default(steps.first.outputs.total, 0)' }

@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E-TYPE-ASSIGN", "severity": "error", "path": "edges[1].to[0].with.result", "line": 20, "message": "output 'result' of $exit.done: expected string got integer"}
+  ]
+}

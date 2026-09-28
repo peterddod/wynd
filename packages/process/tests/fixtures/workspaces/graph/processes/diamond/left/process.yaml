@@ -1,0 +1,5 @@
+kind: process
+name: left
+entry: down
+steps:
+  down: { use: process:diamond/bottom }

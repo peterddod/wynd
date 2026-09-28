@@ -1,0 +1,10 @@
+kind: proto_step
+name: greet
+instruction: Write a one-line greeting for the named person.
+inputs:
+  person: string
+outputs:
+  line: string
+examples:
+  - inputs: { person: Ada }
+    outputs: { line: "Hello, Ada." }

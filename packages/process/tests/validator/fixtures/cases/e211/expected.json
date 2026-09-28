@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E211", "severity": "error", "process": "main", "path": "edges[1].to[0].with", "file": "processes/main/process.yaml"},
+    {"code": "E211", "severity": "error", "process": "main", "path": "edges[2].to[0].with", "file": "processes/main/process.yaml"}
+  ]
+}

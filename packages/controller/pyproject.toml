@@ -1,0 +1,43 @@
+[project]
+name = "wynd-controller"
+version = "0.1.0"
+description = "Wynd controller: the library behind the CLI and the HTTP API (jobs, runs, releases, triggers, chats)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+dependencies = [
+  "wynd-spec",
+  "wynd-runtime",
+  "wynd-process",
+  "wynd-compiler",
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "httpx>=0.27",
+  "pyyaml>=6",
+]
+
+[project.entry-points."wynd.job_runners"]
+inprocess = "wynd.controller.jobs.inprocess:InProcessJobRunner"
+subprocess = "wynd.controller.jobs.subproc:SubprocessJobRunner"
+
+[project.entry-points."wynd.serving_backends"]
+docker = "wynd.controller.releases.serving:DockerServing"
+
+[project.entry-points."wynd.trigger_backends"]
+scheduler = "wynd.controller.releases.triggers:SchedulerTriggers"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wynd"]
+# The web bundle is git-ignored build output of packages/web; ship it anyway.
+artifacts = ["src/wynd/controller/web_dist/**"]
+
+[tool.uv.sources]
+wynd-spec = { workspace = true }
+wynd-runtime = { workspace = true }
+wynd-process = { workspace = true }
+wynd-compiler = { workspace = true }

@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W129", "severity": "warning", "process": "main", "path": "steps.second", "file": "processes/main/process.yaml"},
+    {"code": "W128", "severity": "warning", "process": "main", "path": "", "file": "processes/main/steps/tally/pyproject.toml"}
+  ]
+}

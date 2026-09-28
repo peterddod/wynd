@@ -1,0 +1,6 @@
+kind: process
+name: flow_optional
+entry: read
+inputs: {due: date?}
+steps:
+  read: { use: ./steps/read_pdf }

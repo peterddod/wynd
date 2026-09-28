@@ -1,0 +1,53 @@
+{
+  "ok": false,
+  "errors": [
+    {
+      "message": "'fields.totl' is not an output of step 'validate' (exits: done)",
+      "start": 3,
+      "end": 37
+    }
+  ],
+  "warnings": [],
+  "scope": [
+    "process.inputs.pdf_path",
+    "run.id",
+    "previous.outputs",
+    "previous.summary",
+    "steps.read.exit",
+    "steps.read.runs",
+    "steps.read.outputs.text",
+    "steps.read.outputs.pages",
+    "steps.extract.exit",
+    "steps.extract.runs",
+    "steps.extract.outputs.supplier",
+    "steps.extract.outputs.invoice_number",
+    "steps.extract.outputs.total",
+    "steps.extract.outputs.currency",
+    "steps.extract.outputs.due_date",
+    "steps.validate.exit",
+    "steps.validate.runs",
+    "steps.validate.outputs.valid",
+    "steps.validate.outputs.fixable",
+    "steps.validate.outputs.errors",
+    "steps.validate.outputs.fields",
+    "steps.validate.outputs.record",
+    "steps.fix.exit",
+    "steps.fix.runs",
+    "steps.save.exit",
+    "steps.save.runs",
+    "steps.escalate.exit",
+    "steps.escalate.runs",
+    "edges[\"read.done\"][0].taken",
+    "edges[\"extract.done\"][0].taken",
+    "edges[\"extract.not_an_invoice\"][0].taken",
+    "edges[\"validate.done\"][0].taken",
+    "edges[\"validate.done\"][1].taken",
+    "edges[\"validate.done\"][2].taken",
+    "edges[\"fix.done\"][0].taken",
+    "edges[\"save.done\"][0].taken",
+    "edges[\"escalate.done\"][0].taken",
+    "env.RECORDS_DIR",
+    "env.REVIEW_DIR",
+    "env.ESCALATIONS_DIR"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W-TYPE-ASSIGN", "severity": "warning", "path": "edges[0].to[0].with.n", "line": 18, "message": "input 'n' of step 'counter': expected integer got number"},
+    {"code": "W-TYPE-ASSIGN", "severity": "warning", "path": "edges[0].to[0].with.day", "line": 19, "message": "input 'day' of step 'counter': expected date got string (parsed at run time)"},
+    {"code": "W-TYPE-NULL", "severity": "warning", "path": "edges[0].to[0].with.label", "line": 20, "message": "input 'label' of step 'counter': may be null"}
+  ]
+}

@@ -1,0 +1,3 @@
+{
+  "authorize_url": "https://auth.example.com/authorize?response_type=code&client_id=wynd-1f2e&redirect_uri=http%3A%2F%2F127.0.0.1%3A8780%2Fapi%2Foauth%2Fcallback&code_challenge=Q9yL3b&code_challenge_method=S256&state=st_8c1d&resource=https%3A%2F%2Fmcp.example.com%2Fmcp"
+}

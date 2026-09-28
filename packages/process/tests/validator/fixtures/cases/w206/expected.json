@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "W206", "severity": "warning", "process": "main", "path": "latency", "file": "processes/main/process.yaml"}
+  ]
+}

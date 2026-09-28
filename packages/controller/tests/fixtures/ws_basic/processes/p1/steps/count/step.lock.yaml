@@ -1,0 +1,51 @@
+# Hand-written step (controller test fixture).
+wynd: 1
+name: count
+kind: deterministic
+entrypoint: count:Count
+proto_hash: sha256:6891a028ebe9357573b8d5cf1157aa5eb6684536b7e8f672813785677b6f73de
+builtin_tools: []
+effects:
+- filesystem
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    properties:
+      text:
+        title: Text
+        type: string
+      dest:
+        title: Dest
+        type: string
+    required:
+    - text
+    - dest
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        words:
+          title: Words
+          type: integer
+        path:
+          title: Path
+          type: string
+      required:
+      - words
+      - path
+      title: Output
+      type: object

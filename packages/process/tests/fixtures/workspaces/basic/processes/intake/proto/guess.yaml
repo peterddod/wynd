@@ -1,0 +1,12 @@
+kind: proto_step
+name: guess
+instruction: Guess the document type from its text.
+exits: [done, unsure]
+examples:
+  - inputs: { text: Invoice 42, lang: en }
+    outputs: { kind: invoice }
+  - inputs: { text: Hello }
+    outputs: { kind: letter, confidence: 0.4 }
+  - inputs: { text: "" }
+    outputs: { reason: empty text }
+    exit: unsure

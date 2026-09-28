@@ -1,0 +1,111 @@
+# Hand-written step (M1 dogfood); the review surface for this package.
+# `wynd validate process_supplier_invoice --sync-interfaces` refreshes the interface snapshot.
+wynd: 1
+name: escalate_to_human
+kind: deterministic
+entrypoint: escalate_to_human:EscalateToHuman
+proto_hash: sha256:a154c6b8de07b979395c20754b187c6215349dcd112b091c30058cfddc167677
+builtin_tools: []
+retries:
+  run: 0
+  validation: 0
+  tool: 0
+effects:
+- filesystem
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    $defs:
+      FieldError:
+        properties:
+          field:
+            title: Field
+            type: string
+          code:
+            title: Code
+            type: string
+          message:
+            title: Message
+            type: string
+          fixable:
+            title: Fixable
+            type: boolean
+        required:
+        - field
+        - code
+        - message
+        - fixable
+        title: FieldError
+        type: object
+      InvoiceFields:
+        properties:
+          supplier:
+            title: Supplier
+            type: string
+          invoice_number:
+            title: Invoice Number
+            type: string
+          total:
+            title: Total
+            type: number
+          currency:
+            title: Currency
+            type: string
+          due_date:
+            format: date
+            title: Due Date
+            type: string
+        required:
+        - supplier
+        - invoice_number
+        - total
+        - currency
+        - due_date
+        title: InvoiceFields
+        type: object
+    properties:
+      fields:
+        $ref: '#/$defs/InvoiceFields'
+      errors:
+        items:
+          $ref: '#/$defs/FieldError'
+        title: Errors
+        type: array
+      queue_dir:
+        format: path
+        title: Queue Dir
+        type: string
+      run_id:
+        title: Run Id
+        type: string
+    required:
+    - fields
+    - errors
+    - queue_dir
+    - run_id
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        ticket_path:
+          format: path
+          title: Ticket Path
+          type: string
+      required:
+      - ticket_path
+      title: Output
+      type: object

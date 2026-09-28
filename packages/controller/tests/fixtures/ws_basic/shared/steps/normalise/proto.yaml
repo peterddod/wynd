@@ -1,0 +1,10 @@
+kind: proto_step
+name: normalise
+instruction: Trim and lower-case the name.
+inputs:
+  name: string
+outputs:
+  name: string
+examples:
+  - inputs: { name: "  Ada " }
+    outputs: { name: ada }

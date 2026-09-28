@@ -1,0 +1,16 @@
+kind: process
+name: child
+env: { base: alpine-python }
+provider: anthropic
+latency: fast
+entry: second
+inputs:
+  value: string
+outputs:
+  result: string
+steps:
+  second: { use: ./steps/second }
+edges:
+  - from: second.done
+    to: $exit.done
+    with: { result: steps.second.outputs.result }

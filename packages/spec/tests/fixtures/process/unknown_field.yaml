@@ -1,0 +1,11 @@
+kind: process
+name: unknown_field
+entry: validate
+steps:
+  validate: { use: ./steps/validate_fields }
+  save: { use: ./steps/save_record }
+edges:
+  - from: validate.done
+    to:
+      - step: save
+        whn: steps.validate.outputs.valid

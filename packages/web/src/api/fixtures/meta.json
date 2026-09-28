@@ -1,0 +1,60 @@
+{
+  "version": "0.1.0",
+  "workspace": {
+    "root": "/home/dev/invoices",
+    "branch": "main",
+    "head": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+    "process_roots": [
+      "processes"
+    ],
+    "step_roots": {
+      "shared": "shared/steps"
+    }
+  },
+  "proto_types": [
+    "string",
+    "number",
+    "integer",
+    "boolean",
+    "date",
+    "datetime",
+    "path",
+    "object"
+  ],
+  "bases": [
+    "debian-slim-python",
+    "alpine-python"
+  ],
+  "latency": [
+    "fast",
+    "normal"
+  ],
+  "edge_kinds": [
+    "deterministic",
+    "agentic"
+  ],
+  "expr_functions": [
+    "coalesce",
+    "contains",
+    "default",
+    "join",
+    "len",
+    "lower",
+    "now",
+    "split",
+    "startswith",
+    "upper"
+  ],
+  "limit_fields": [
+    "max_traversals",
+    "timeout",
+    "retries"
+  ],
+  "default_max_traversals": 10,
+  "default_provider": "claude-code",
+  "llm": {
+    "provider": "claude-code",
+    "ready": true,
+    "message": "claude-agent-sdk 0.2.157, Claude Code CLI /home/dev/wynd/.venv/lib/python3.12/site-packages/claude_agent_sdk/_bundled/claude"
+  }
+}

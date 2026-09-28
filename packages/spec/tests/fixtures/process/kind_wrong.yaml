@@ -1,0 +1,5 @@
+kind: proto_step
+name: kind_wrong
+entry: read
+steps:
+  read: { use: ./steps/read_pdf }

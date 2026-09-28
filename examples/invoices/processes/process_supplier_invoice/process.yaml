@@ -1,0 +1,98 @@
+kind: process
+name: process_supplier_invoice
+goal: Turn a supplier invoice PDF into a validated record in the records store.
+provider: claude-code                 # default provider; tiers map via `wynd provider`
+env:
+  base: debian-slim-python
+  vars:
+    RECORDS_DIR: Directory where validated invoice records are written as JSON.
+    REVIEW_DIR: Directory where validated records with a total over 10,000 are written for approval instead.
+    ESCALATIONS_DIR: Directory where escalation tickets for a human reviewer are written.
+entry: read                           # read.Input declares pdf_path
+inputs:
+  pdf_path: path
+outputs:
+  done:
+    record: object
+  not_an_invoice: {}
+  needs_review: {}
+examples:
+  - inputs: { pdf_path: examples/acme_inv_1042.pdf }
+    env: &dirs { RECORDS_DIR: "{tmp}/records", REVIEW_DIR: "{tmp}/review", ESCALATIONS_DIR: "{tmp}/escalations" }
+    outputs:
+      record: { key: acme-supplies-ltd__INV-1042, supplier: ACME Supplies Ltd, invoice_number: INV-1042,
+                total: 1200.5, currency: GBP, due_date: 2026-10-01 }
+    exit: done
+  - inputs: { pdf_path: examples/globex_inv_77810.pdf }          # > 10,000: saved to REVIEW_DIR
+    env: *dirs
+    outputs:
+      record: { key: globex-corporation__GX-77810, supplier: Globex Corporation, invoice_number: GX-77810,
+                total: 14250.0, currency: USD, due_date: 2026-11-15 }
+    exit: done
+  - inputs: { pdf_path: examples/initech_inv_5521.pdf }          # "$" -> validate fixable -> fix -> CAD
+    env: *dirs
+    outputs:
+      record: { key: initech-canada-inc__IC-5521, supplier: Initech Canada Inc., invoice_number: IC-5521,
+                total: 980.0, currency: CAD, due_date: 2026-10-20 }
+    exit: done
+  - inputs: { pdf_path: examples/shipping_notice.pdf }
+    env: *dirs
+    exit: not_an_invoice
+  - inputs: { pdf_path: examples/hooli_credit_note_311.pdf }     # negative total: not fixable -> escalate
+    env: *dirs
+    exit: needs_review
+  - inputs: { pdf_path: examples/umbrella_proforma_88.pdf }      # valid fields, agentic check says no -> escalate
+    env: *dirs
+    exit: needs_review
+steps:
+  read:     { use: ./steps/read_pdf }
+  extract:  { use: ./steps/extract_invoice_fields }
+  validate: { use: ./steps/validate_fields }
+  fix:      { use: ./steps/fix_fields }
+  save:     { use: ./steps/save_record }
+  escalate: { use: ./steps/escalate_to_human }
+edges:
+  - from: read.done
+    to: extract
+    with: { invoice_text: steps.read.outputs.text }
+  - from: extract.done
+    to: validate
+    with: { fields: steps.extract.outputs }
+  - from: extract.not_an_invoice
+    to: $exit.not_an_invoice
+  # Branches evaluated top to bottom; first taken wins; the first branch with no when/check is the else.
+  - from: validate.done
+    kind: agentic
+    to:
+      - step: save
+        name: save
+        when: steps.validate.outputs.valid
+        check: >-
+          The document is a final supplier invoice that requests payment:
+          not a pro forma invoice, quote, estimate or statement.
+        context: [steps.read.outputs]
+        with:
+          record: steps.validate.outputs.record
+          dest: if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR
+                else env.RECORDS_DIR
+      - step: fix
+        name: fix
+        when: steps.validate.outputs.fixable and steps.fix.runs < 3
+        with:
+          invoice_text: steps.read.outputs.text
+          fields: steps.validate.outputs.fields                    # the fields just validated: extract's or fix's
+          errors: steps.validate.outputs.errors
+      - step: escalate                                             # else: not fixable, fixed 3 times, or check said no
+        with:
+          fields: steps.validate.outputs.fields
+          errors: steps.validate.outputs.errors
+          queue_dir: env.ESCALATIONS_DIR
+          run_id: run.id
+  - from: fix.done
+    to: validate
+    with: { fields: steps.fix.outputs }
+  - from: save.done
+    to: $exit.done
+    with: { record: steps.save.outputs.record }
+  - from: escalate.done
+    to: $exit.needs_review

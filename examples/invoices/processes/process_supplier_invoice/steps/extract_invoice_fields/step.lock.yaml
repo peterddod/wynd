@@ -1,0 +1,75 @@
+# Hand-written step (M1 dogfood); the review surface for this package.
+# `wynd validate process_supplier_invoice --sync-interfaces` refreshes the interface snapshot.
+wynd: 1
+name: extract_invoice_fields
+kind: agentic
+entrypoint: extract_invoice_fields:ExtractInvoiceFields
+proto_hash: sha256:ba392c818983a87031ea23052161c5d039c62e6e2fe6993d750b60439381546e
+tier: cheap
+thinking: low
+builtin_tools: []
+retries:
+  run: 2
+  validation: 2
+  tool: 1
+effects: []
+tools: []
+mcp: []
+context: []
+fragment:
+  deps: []
+  system: []
+  vars: []
+  groups: {}
+locked_deps: []
+interface:
+  input:
+    properties:
+      invoice_text:
+        title: Invoice Text
+        type: string
+    required:
+    - invoice_text
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        supplier:
+          title: Supplier
+          type: string
+        invoice_number:
+          title: Invoice Number
+          type: string
+        total:
+          title: Total
+          type: number
+        currency:
+          title: Currency
+          type: string
+        due_date:
+          format: date
+          title: Due Date
+          type: string
+      required:
+      - supplier
+      - invoice_number
+      - total
+      - currency
+      - due_date
+      title: Done
+      type: object
+    not_an_invoice:
+      properties:
+        exit:
+          const: not_an_invoice
+          default: not_an_invoice
+          title: Exit
+          type: string
+      title: NotAnInvoice
+      type: object

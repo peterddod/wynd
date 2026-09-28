@@ -1,0 +1,12 @@
+kind: proto_step
+name: bad_example
+instruction: Extract a total.
+inputs:
+  text: string
+outputs:
+  total: number
+examples:
+  - inputs: { text: "Total 3" }
+    outputs: { total: 3 }
+  - inputs: { text: "Total ?" }
+    outputs: { total: "unknown" }

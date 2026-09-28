@@ -1,0 +1,54 @@
+# Hand-written step (M1 dogfood); the review surface for this package.
+# `wynd validate process_supplier_invoice --sync-interfaces` refreshes the interface snapshot.
+wynd: 1
+name: read_pdf
+kind: deterministic
+entrypoint: read_pdf:ReadPdf
+proto_hash: sha256:738b861d35c725b5a98824a60c10f2c61b6a2341d423a33646bb51e7c48e75d5
+builtin_tools: []
+retries:
+  run: 0
+  validation: 0
+  tool: 0
+effects: []
+tools: []
+mcp: []
+context: []
+fragment:
+  deps:
+  - pypdf>=6,<7
+  system: []
+  vars: []
+  groups: {}
+locked_deps:
+- pypdf==6.19.0
+interface:
+  input:
+    properties:
+      pdf_path:
+        format: path
+        title: Pdf Path
+        type: string
+    required:
+    - pdf_path
+    title: Input
+    type: object
+  outputs:
+    done:
+      properties:
+        exit:
+          const: done
+          default: done
+          title: Exit
+          type: string
+        text:
+          title: Text
+          type: string
+        pages:
+          title: Pages
+          type: integer
+      required:
+      - text
+      - pages
+      title: Output
+      type: object

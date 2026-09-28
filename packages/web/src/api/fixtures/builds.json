@@ -1,0 +1,158 @@
+[
+  {
+    "process_id": "process_supplier_invoice",
+    "commit": "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432",
+    "short": "9f8e7d6",
+    "image": "localhost:5001/wynd/process_supplier_invoice:9f8e7d6c5b4a",
+    "built_at": "2026-09-20T15:46:30Z",
+    "job_id": "job_20260926T171500456_0b9a8c",
+    "at_head": false,
+    "behind": 3,
+    "env": [
+      {
+        "name": "ANTHROPIC_API_KEY",
+        "description": "Anthropic API key (alternative to CLAUDE_CODE_OAUTH_TOKEN).",
+        "secret": true,
+        "required": false,
+        "default": null,
+        "one_of": "claude-code-auth",
+        "used_by": [
+          "provider:claude-code"
+        ]
+      },
+      {
+        "name": "CLAUDE_CODE_OAUTH_TOKEN",
+        "description": "Claude Code OAuth token (`claude setup-token`).",
+        "secret": true,
+        "required": false,
+        "default": null,
+        "one_of": "claude-code-auth",
+        "used_by": [
+          "provider:claude-code"
+        ]
+      },
+      {
+        "name": "ESCALATIONS_DIR",
+        "description": "Directory where escalation tickets for a human reviewer are written.",
+        "secret": false,
+        "required": true,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "edge:process_supplier_invoice:validate.done[2].queue_dir"
+        ]
+      },
+      {
+        "name": "RECORDS_DIR",
+        "description": "Directory where validated invoice records are written as JSON.",
+        "secret": false,
+        "required": true,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "edge:process_supplier_invoice:validate.done[0].dest"
+        ]
+      },
+      {
+        "name": "REVIEW_DIR",
+        "description": "Directory where validated records with a total over 10,000 are written for approval instead.",
+        "secret": false,
+        "required": true,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "edge:process_supplier_invoice:validate.done[0].dest"
+        ]
+      },
+      {
+        "name": "WYND_RUN_API_TOKEN",
+        "description": "Bearer token required by the run API when set.",
+        "secret": true,
+        "required": false,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "runtime"
+        ]
+      }
+    ]
+  },
+  {
+    "process_id": "process_supplier_invoice",
+    "commit": "5e4d3c2b1a0f9e8d7c6b5a4938271605f4e3d2c1",
+    "short": "5e4d3c2",
+    "image": "localhost:5001/wynd/process_supplier_invoice:5e4d3c2b1a0f",
+    "built_at": "2026-09-12T08:02:11Z",
+    "job_id": "job_20260912T075500000_1a2b3c",
+    "at_head": false,
+    "behind": 9,
+    "env": [
+      {
+        "name": "ANTHROPIC_API_KEY",
+        "description": "Anthropic API key (alternative to CLAUDE_CODE_OAUTH_TOKEN).",
+        "secret": true,
+        "required": false,
+        "default": null,
+        "one_of": "claude-code-auth",
+        "used_by": [
+          "provider:claude-code"
+        ]
+      },
+      {
+        "name": "CLAUDE_CODE_OAUTH_TOKEN",
+        "description": "Claude Code OAuth token (`claude setup-token`).",
+        "secret": true,
+        "required": false,
+        "default": null,
+        "one_of": "claude-code-auth",
+        "used_by": [
+          "provider:claude-code"
+        ]
+      },
+      {
+        "name": "ESCALATIONS_DIR",
+        "description": "Directory where escalation tickets for a human reviewer are written.",
+        "secret": false,
+        "required": true,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "edge:process_supplier_invoice:validate.done[2].queue_dir"
+        ]
+      },
+      {
+        "name": "RECORDS_DIR",
+        "description": "Directory where validated invoice records are written as JSON.",
+        "secret": false,
+        "required": true,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "edge:process_supplier_invoice:validate.done[0].dest"
+        ]
+      },
+      {
+        "name": "REVIEW_DIR",
+        "description": "Directory where validated records with a total over 10,000 are written for approval instead.",
+        "secret": false,
+        "required": true,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "edge:process_supplier_invoice:validate.done[0].dest"
+        ]
+      },
+      {
+        "name": "WYND_RUN_API_TOKEN",
+        "description": "Bearer token required by the run API when set.",
+        "secret": true,
+        "required": false,
+        "default": null,
+        "one_of": null,
+        "used_by": [
+          "runtime"
+        ]
+      }
+    ]
+  }
+]

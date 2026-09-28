@@ -1,0 +1,1 @@
+locks/builtin_bash.yaml:5:23: error[E-LOCK] builtin_tools[1]: builtin tool 'Bash' is not allowed: harnesses run on the host in local mode and may execute model-written code only inside the process container (SPEC §3.8)

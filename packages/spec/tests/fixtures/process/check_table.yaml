@@ -1,0 +1,41 @@
+kind: process
+name: check_table
+entry: start
+outputs:
+  done:
+    total: number
+  parked: {}
+examples:
+  - inputs: { amount: 3 }
+    outputs: { total: "lots" }
+    exit: done
+  - inputs: {}
+    exit: vanished
+on_error: park
+finally: [cleanup, save]
+steps:
+  read: { use: ./steps/read }
+  save: { use: ./steps/save }
+  park: { use: ./steps/park }
+  cleanup: { use: ./steps/cleanup }
+edges:
+  - from: read.done
+    to:
+      - step: save
+        when: steps.read.outputs.ok
+        name: go
+      - step: $exit.parked
+        name: go
+        when: nofunc(steps.read.outputs.ok)
+        limits: { max_traversals: 3 }
+      - step: $exit.error
+      - step: nowhere
+  - from: read.done
+    to:
+      - step: $ignore
+        when: steps.read.outputs.skip
+  - from: ghost.done
+    to: $exit.nope
+  - from: park.done
+    to: $ignore
+    with: { x: steps.read.outputs.x }

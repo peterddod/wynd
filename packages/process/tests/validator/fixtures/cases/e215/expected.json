@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E215", "severity": "error", "process": "main", "path": "finally[1]", "file": "processes/main/process.yaml"}
+  ]
+}

@@ -1,0 +1,2 @@
+process_roots: [processes]
+step_roots: {shared: shared/steps}

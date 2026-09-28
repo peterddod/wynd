@@ -1,0 +1,10 @@
+kind: proto_step
+name: tag
+instruction: Turn the name into a tag such as "#ada".
+inputs:
+  name: string
+outputs:
+  tag: string
+examples:
+  - inputs: { name: ada }
+    outputs: { tag: "#ada" }

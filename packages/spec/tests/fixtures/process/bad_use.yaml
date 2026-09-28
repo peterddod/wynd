@@ -1,0 +1,5 @@
+kind: process
+name: bad_use
+entry: read
+steps:
+  read: { use: ../x }

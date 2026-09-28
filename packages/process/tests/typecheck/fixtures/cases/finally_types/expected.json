@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E-TYPE-ASSIGN", "severity": "error", "path": "finally[0]", "line": 24, "message": "'run_id' -> input 'run_id' of finally step 'notify': expected integer got string"},
+    {"code": "E-TYPE-ASSIGN", "severity": "error", "path": "finally[1].with.value", "line": 26, "message": "input 'value' of finally step 'audit': expected string got integer"}
+  ]
+}

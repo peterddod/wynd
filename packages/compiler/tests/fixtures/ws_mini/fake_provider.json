@@ -1,0 +1,12 @@
+{
+  "responses": [
+    {"match": {"input": {"message": "My invoice is wrong"}}, "output": {"exit": "done", "category": "billing"}},
+    {"match": {"input": {"message": "Ada Lovelace"}}, "output": {"exit": "done", "category": "billing"}},
+    {"match": {"input": {"message": "WIN A PRIZE NOW"}}, "output": {"exit": "spam"}},
+    {"match": {"input": {"message": "Win A Prize Now"}}, "output": {"exit": "spam"}},
+    {"match": {"input": {"text": "twelve pounds fifty"}}, "output": {"exit": "done", "amount": 12.5}},
+    {"match": {"input": {"text": "£12.50"}}, "output": {"exit": "done", "amount": 12.5}},
+    {"match": {"input": {"text": "12.50 GBP"}}, "output": {"exit": "done", "amount": 12.5}},
+    {"match": {"input": {"text": "EUR 3"}}, "output": {"exit": "done", "amount": 3.0}}
+  ]
+}

@@ -1,0 +1,149 @@
+# ScriptedLLM script for test_dogfood_offline.py: compiling examples/invoices from its proto-steps reproduces the
+# M1 hand-written packages. The write_deterministic responses are the M1 modules themselves (paths relative to this
+# file); the agentic steps get docstrings and run on the `fake` provider. No edge-case proposals are made.
+calls:
+  - {kind: propose_examples, node: read, response: {proposals: []}}
+  - kind: decide
+    node: read
+    response:
+      examples:
+        - {index: 1, needs: pure, why: "text extraction from a PDF produced by software"}
+        - {index: 2, needs: pure, why: "text extraction from a PDF produced by software"}
+        - {index: 3, needs: pure, why: "a missing file is an error"}
+      command: false
+      program: ""
+      summary: Extracting the text layer of a PDF is a pure function of the file.
+  - kind: write_deterministic
+    node: read
+    response:
+      module_source_file: ../../../../../examples/invoices/processes/process_supplier_invoice/steps/read_pdf/read_pdf.py
+      deps: ["pypdf>=6,<7"]
+      system_packages: []
+      requires_glibc: false
+      effects: []
+      env_vars: []
+      notes: Reads the text layer page by page with pypdf.
+
+  - {kind: propose_examples, node: extract, response: {proposals: []}}
+  - kind: decide
+    node: extract
+    response:
+      examples:
+        - {index: 1, needs: judgement, why: "free-form invoice text"}
+        - {index: 2, needs: judgement, why: "free-form invoice text"}
+        - {index: 3, needs: judgement, why: "free-form invoice text"}
+        - {index: 4, needs: judgement, why: "deciding what is an invoice"}
+        - {index: 5, needs: judgement, why: "credit note wording"}
+      command: false
+      program: ""
+      summary: Reading supplier invoices written by many different systems needs reading comprehension.
+  - kind: write_agentic
+    node: extract
+    response:
+      docstring: |-
+        Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.
+
+        Choose `done` for any document that states an amount to pay or to credit, and `not_an_invoice` for
+        documents with no amount due at all.
+      context: []
+      tools: []
+      mcp: []
+      tool_methods: ""
+      deps: []
+      env_vars: []
+      notes: Supplier documents vary too much for fixed rules.
+
+  - {kind: propose_examples, node: validate, response: {proposals: []}}
+  - kind: decide
+    node: validate
+    response:
+      examples:
+        - {index: 1, needs: pure, why: "fixed rules"}
+        - {index: 2, needs: pure, why: "fixed rules"}
+        - {index: 3, needs: pure, why: "fixed rules"}
+        - {index: 4, needs: pure, why: "fixed rules"}
+        - {index: 5, needs: pure, why: "fixed rules"}
+        - {index: 6, needs: pure, why: "fixed rules"}
+        - {index: 7, needs: pure, why: "fixed rules"}
+        - {index: 8, needs: pure, why: "fixed rules"}
+      command: false
+      program: ""
+      summary: Validation applies fixed accounts-payable rules.
+  - kind: write_deterministic
+    node: validate
+    response:
+      module_source_file: ../../../../../examples/invoices/processes/process_supplier_invoice/steps/validate_fields/validate_fields.py
+      deps: []
+      system_packages: []
+      requires_glibc: false
+      effects: []
+      env_vars: []
+      notes: Normalises the fields and checks them against fixed rules.
+
+  - {kind: propose_examples, node: fix, response: {proposals: []}}
+  - kind: decide
+    node: fix
+    response:
+      examples:
+        - {index: 1, needs: judgement, why: "re-reading the invoice text"}
+        - {index: 2, needs: judgement, why: "re-reading the invoice text"}
+        - {index: 3, needs: judgement, why: "re-reading the invoice text"}
+      command: false
+      program: ""
+      summary: Correcting mis-read fields needs reading the context.
+  - kind: write_agentic
+    node: fix
+    response:
+      docstring: |-
+        Correct invoice fields that failed validation by re-reading the invoice text.
+
+        Change only the fields named in errors and copy every other field unchanged.
+      context: []
+      tools: []
+      mcp: []
+      tool_methods: ""
+      deps: []
+      env_vars: []
+      notes: Deciding what a mis-read field should have been needs the invoice text.
+
+  - {kind: propose_examples, node: save, response: {proposals: []}}
+  - kind: decide
+    node: save
+    response:
+      examples:
+        - {index: 1, needs: pure, why: "writes a file"}
+        - {index: 2, needs: pure, why: "writes a file"}
+      command: false
+      program: ""
+      summary: Writing a record as JSON is a pure function of its inputs.
+  - kind: write_deterministic
+    node: save
+    response:
+      module_source_file: ../../../../../examples/invoices/processes/process_supplier_invoice/steps/save_record/save_record.py
+      deps: []
+      system_packages: []
+      requires_glibc: false
+      effects: [filesystem]
+      env_vars: []
+      notes: Writes the record as JSON under the destination directory.
+
+  - {kind: propose_examples, node: escalate, response: {proposals: []}}
+  - kind: decide
+    node: escalate
+    response:
+      examples:
+        - {index: 1, needs: pure, why: "writes a ticket file"}
+        - {index: 2, needs: pure, why: "writes a ticket file"}
+      command: false
+      program: ""
+      summary: Writing an escalation ticket is a pure function of its inputs.
+  - kind: write_deterministic
+    node: escalate
+    response:
+      module_source_file: ../../../../../examples/invoices/processes/process_supplier_invoice/steps/escalate_to_human/escalate_to_human.py
+      deps: []
+      system_packages: []
+      requires_glibc: false
+      effects: [filesystem]
+      env_vars: []
+      notes: Writes an escalation ticket for a human reviewer.

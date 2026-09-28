@@ -1,0 +1,7 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "I201", "severity": "info", "process": "main", "path": "edges[0].to[0]", "file": "processes/main/process.yaml"},
+    {"code": "I201", "severity": "info", "process": "main", "path": "edges[1].to[0]", "file": "processes/main/process.yaml"}
+  ]
+}

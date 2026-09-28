@@ -1,0 +1,11 @@
+kind: proto_step
+name: second
+instruction: Turn the value into a result.
+inputs:
+  value: string
+  amount: number
+outputs:
+  result: string
+examples:
+  - inputs: { value: A, amount: 1.5 }
+    outputs: { result: done A }

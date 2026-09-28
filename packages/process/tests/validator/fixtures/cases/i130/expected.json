@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "I130", "severity": "info", "process": "main", "path": "steps.second", "file": "processes/main/process.yaml"}
+  ]
+}

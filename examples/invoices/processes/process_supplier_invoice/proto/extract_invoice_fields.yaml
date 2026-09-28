@@ -1,0 +1,99 @@
+kind: proto_step
+name: extract_invoice_fields
+instruction: |
+  Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.
+
+  Treat any document that states an amount to pay or to credit as an invoice, including pro forma
+  invoices and credit notes; use not_an_invoice only for documents with no amount due at all, such
+  as shipping notices, marketing or letters.
+
+  supplier: the supplier's name exactly as printed at the top of the document.
+  invoice_number: the document's own number exactly as printed (invoice, credit note or pro forma
+  number), not a customer, order or tax registration number.
+  total: the final amount due as a number without currency symbols or thousands separators;
+  negative for credits.
+  currency: the ISO 4217 code if the document states one or the symbol is unambiguous (£ is GBP,
+  € is EUR); otherwise the symbol exactly as printed, for example "$".
+  due_date: the payment due date (or the refund-by or valid-until date if there is no due date).
+inputs:
+  invoice_text: string
+outputs:
+  done:
+    supplier: string
+    invoice_number: string
+    total: number
+    currency: string
+    due_date: date
+  not_an_invoice: {}
+exits: [done, not_an_invoice]
+examples:
+  - inputs:
+      invoice_text: |-
+        ACME Supplies Ltd
+        12 Foundry Lane, Sheffield S1 2AB, United Kingdom
+        VAT registration: GB123456789
+        INVOICE
+        Invoice number: INV-1042
+        Invoice date: 1 September 2026
+        Due date: 1 October 2026
+        Bill to: Wynd Test Ltd, 1 Example Street, London EC1A 1AA
+        Steel brackets (box of 100)      4 x £150.00      £600.00
+        Galvanised bolts M8 (box of 500)      2 x £200.25      £400.50
+        Delivery      £200.00
+        Total due: £1,200.50
+        Payment terms: 30 days. Pay by bank transfer to sort code 00-00-00, account 12345678.
+    outputs: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.50, currency: GBP, due_date: 2026-10-01 }
+    exit: done
+  - inputs:
+      invoice_text: |-
+        Globex Corporation
+        500 Market Street, Springfield, OR 97477, USA
+        INVOICE
+        Invoice No: GX-77810
+        Invoice date: 15 September 2026
+        Payment due: 15 November 2026
+        Bill to: Wynd Test Ltd
+        Consulting services, September 2026: 95 hours at USD 150.00      USD 14,250.00
+        Amount due (USD): 14,250.00
+    outputs: { supplier: Globex Corporation, invoice_number: GX-77810, total: 14250.00, currency: USD, due_date: 2026-11-15 }
+    exit: done
+  - inputs:
+      invoice_text: |-
+        Initech Canada Inc.
+        200 King Street West, Toronto, ON M5H 3T4, Canada
+        GST/HST registration: 123456789 RT0001
+        INVOICE
+        Invoice #: IC-5521
+        Issued: 20 September 2026
+        Due: 20 October 2026
+        Bill to: Wynd Test Ltd
+        TPS report cover sheets (1,000)      $780.00
+        Printer maintenance      $200.00
+        Total: $980.00
+    outputs: { supplier: Initech Canada Inc., invoice_number: IC-5521, total: 980.00, currency: "$", due_date: 2026-10-20 }
+    exit: done
+  - inputs:
+      invoice_text: |-
+        Hooli Ltd
+        1 Silicon Way, Cambridge CB1 1AA, United Kingdom
+        CREDIT NOTE
+        Credit note number: CN-311
+        Relates to invoice: HL-2291
+        Date: 18 September 2026
+        Refund due by: 18 October 2026
+        Returned: 2 x Nucleus compression licence      -£250.00
+        Total: -£250.00
+    outputs: { supplier: Hooli Ltd, invoice_number: CN-311, total: -250.00, currency: GBP, due_date: 2026-10-18 }
+    exit: done
+  - inputs:
+      invoice_text: |-
+        Globex Corporation
+        Shipping notification
+        Dear customer, your order GX-ORD-3321 has shipped.
+        Carrier: Example Parcel Co.
+        Tracking number: EP123456789GB
+        Expected delivery: 3 October 2026
+        This is not an invoice. No payment is required.
+    exit: not_an_invoice
+env:
+  deps: []

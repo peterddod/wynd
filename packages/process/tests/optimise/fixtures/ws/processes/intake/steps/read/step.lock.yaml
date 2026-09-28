@@ -1,0 +1,4 @@
+wynd: 1
+name: read
+kind: deterministic
+entrypoint: read:Read

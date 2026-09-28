@@ -1,0 +1,1 @@
+locks/bad_context.yaml:5:25: error[E-CONTEXT] context[1]: invalid context entry 'steps.read.text': expected full_trace, process.goal, process.inputs, previous.summary, previous.outputs, steps.<step>.outputs[.<field>…] or steps.<step>.summary

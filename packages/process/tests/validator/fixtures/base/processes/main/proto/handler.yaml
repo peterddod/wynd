@@ -1,0 +1,9 @@
+kind: proto_step
+name: handler
+instruction: Report the failure.
+inputs:
+  message: string
+  cause: string
+outputs: {}
+examples:
+  - inputs: { message: boom, cause: step_error }

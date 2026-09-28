@@ -1,0 +1,6 @@
+{
+  "process": "main",
+  "diagnostics": [
+    {"code": "E204", "severity": "error", "process": "main", "path": "edges[1].from", "file": "processes/main/process.yaml"}
+  ]
+}

@@ -1,0 +1,13 @@
+kind: process
+name: status
+entry: first
+inputs:
+  text: string
+outputs:
+  result: string
+steps:
+  first: { use: ./steps/first }
+edges:
+  - from: first.done
+    to: $exit.done
+    with: { result: steps.first.outputs.value }

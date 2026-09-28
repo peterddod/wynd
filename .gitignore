@@ -1,0 +1,21 @@
+# Wynd state: venvs, build artefacts, registries, job worktrees (spec 5.1)
+.wynd/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+packages/*/dist/
+examples/**/dist/
+# Web
+node_modules/
+packages/web/dist/
+# Web bundle built into the controller package (shipped as wheel artifacts)
+packages/controller/src/wynd/controller/web_dist/
+# Env files hold secrets at any depth; the example is committed
+.env
+.env.*
+!.env.example
+# OS / editors
+.DS_Store

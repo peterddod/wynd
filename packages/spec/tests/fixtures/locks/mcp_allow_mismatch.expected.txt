@@ -1,0 +1,1 @@
+locks/mcp_allow_mismatch.yaml:10:7: error[E-LOCK] mcp[0].tools: mcp server github: the snapshot tools (search_issues) must be exactly the allowed tools (create_issue, search_issues)

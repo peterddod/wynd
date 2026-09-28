@@ -1,0 +1,23 @@
+kind: proto_step
+name: extract_invoice_fields
+instruction: |
+  Extract the supplier, invoice number, total, currency and due date from the text of a supplier invoice.
+inputs:
+  invoice_text: string
+outputs:
+  done:
+    supplier: string
+    invoice_number: string
+    total: number
+    currency: string
+    due_date: date
+  not_an_invoice: {}
+exits: [done, not_an_invoice]
+examples:
+  - inputs: { invoice_text: "INVOICE INV-1042 ... Total due: £1,200.50 by 1 Oct 2026" }
+    outputs: { supplier: ACME Supplies Ltd, invoice_number: INV-1042, total: 1200.50, currency: GBP, due_date: 2026-10-01 }
+    exit: done
+  - inputs: { invoice_text: "Dear customer, your order has shipped" }
+    exit: not_an_invoice
+env:
+  deps: []

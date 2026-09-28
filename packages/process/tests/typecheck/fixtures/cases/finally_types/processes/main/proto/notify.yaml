@@ -1,0 +1,10 @@
+kind: proto_step
+name: notify
+instruction: Record that the run ended.
+inputs:
+  run_id: integer
+  count: integer
+  text: string
+outputs: {}
+examples:
+  - inputs: { run_id: 1, count: 1, text: a }

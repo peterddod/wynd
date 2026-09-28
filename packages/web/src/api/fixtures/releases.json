@@ -1,0 +1,64 @@
+[
+  {
+    "id": "rel_20260920T160000000_77aa01",
+    "process_id": "process_supplier_invoice",
+    "commit": "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432",
+    "short": "9f8e7d6",
+    "image": "localhost:5001/wynd/process_supplier_invoice:9f8e7d6c5b4a",
+    "behind": 3,
+    "trigger": {
+      "kind": "schedule",
+      "cron": "0 7 * * 1-5",
+      "timezone": "Europe/London",
+      "inputs": {
+        "pdf_path": "/inbox/latest.pdf"
+      }
+    },
+    "env": {
+      "RECORDS_DIR": {
+        "value": "/data/records"
+      },
+      "REVIEW_DIR": {
+        "value": "/data/review"
+      },
+      "ESCALATIONS_DIR": {
+        "value": "/data/escalations"
+      },
+      "CLAUDE_CODE_OAUTH_TOKEN": {
+        "from_env": "CLAUDE_CODE_OAUTH_TOKEN"
+      }
+    },
+    "enabled": true,
+    "state": "serving",
+    "state_detail": null,
+    "created_at": "2026-09-20T16:00:00Z",
+    "next_fire_at": "2026-09-28T06:00:00Z",
+    "webhook_url": null
+  },
+  {
+    "id": "rel_20260921T090000000_88bb02",
+    "process_id": "process_supplier_invoice",
+    "commit": "5e4d3c2b1a0f9e8d7c6b5a4938271605f4e3d2c1",
+    "short": "5e4d3c2",
+    "image": "localhost:5001/wynd/process_supplier_invoice:5e4d3c2b1a0f",
+    "behind": 9,
+    "trigger": {
+      "kind": "webhook",
+      "secret_env": "INVOICE_HOOK_SECRET"
+    },
+    "env": {
+      "RECORDS_DIR": {
+        "value": "/data/records"
+      },
+      "CLAUDE_CODE_OAUTH_TOKEN": {
+        "from_env": "CLAUDE_CODE_OAUTH_TOKEN"
+      }
+    },
+    "enabled": false,
+    "state": "stopped",
+    "state_detail": "disabled",
+    "created_at": "2026-09-21T09:00:00Z",
+    "next_fire_at": null,
+    "webhook_url": "http://127.0.0.1:8780/hooks/releases/rel_20260921T090000000_88bb02"
+  }
+]

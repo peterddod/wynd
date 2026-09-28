@@ -1,0 +1,1 @@
+proto/bad_example.yaml:12:23: error[E-EXAMPLE] examples[1].outputs.total: Input should be a valid number, unable to parse string as a number

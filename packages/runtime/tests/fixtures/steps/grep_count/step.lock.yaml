@@ -1,0 +1,6 @@
+wynd: 1
+name: grep_count
+kind: shell
+entrypoint: grep_count:GrepCount
+shell:
+  exit_codes: {0: done, 1: no_match, "*": error}

@@ -1,0 +1,16 @@
+kind: proto_step
+name: read_pdf
+instruction: Read a PDF file and return its text and page count.
+inputs:
+  pdf_path: path
+outputs:
+  text: string
+  pages: integer
+examples:
+  - inputs: { pdf_path: examples/acme_inv_1042.pdf }
+    outputs: { pages: 1 }
+    exit: done
+  - inputs: { pdf_path: examples/does_not_exist.pdf }
+    exit: error
+env:
+  deps: ["pypdf>=6,<7"]

@@ -1,0 +1,15 @@
+wynd: 1
+name: second
+kind: deterministic
+entrypoint: second:Second
+proto_hash: sha256:ac11b928ba6bc0ec3e85fc4d6c4ce70c2bd12b6481fba25b7594903ca4721d13
+interface:
+  input:
+    type: object
+    properties: { value: { type: string } }
+    required: [value]
+  outputs:
+    done:
+      type: object
+      properties: { exit: { const: done }, result: { type: string } }
+      required: [result]

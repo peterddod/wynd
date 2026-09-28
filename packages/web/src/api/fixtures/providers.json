@@ -1,0 +1,35 @@
+[
+  {
+    "name": "anthropic",
+    "kind": "model",
+    "tiers": {
+      "cheap": "claude-haiku-4-5",
+      "standard": "claude-sonnet-5",
+      "strong": "claude-opus-5"
+    },
+    "ready": false,
+    "message": "ANTHROPIC_API_KEY is not set"
+  },
+  {
+    "name": "claude-code",
+    "kind": "agent",
+    "tiers": {
+      "cheap": "haiku",
+      "standard": "sonnet",
+      "strong": "opus"
+    },
+    "ready": true,
+    "message": "claude-agent-sdk 0.2.157, Claude Code CLI /home/dev/wynd/.venv/lib/python3.12/site-packages/claude_agent_sdk/_bundled/claude"
+  },
+  {
+    "name": "fake",
+    "kind": "agent",
+    "tiers": {
+      "cheap": "fake",
+      "standard": "fake",
+      "strong": "fake"
+    },
+    "ready": true,
+    "message": "provider 'fake' needs no setup"
+  }
+]

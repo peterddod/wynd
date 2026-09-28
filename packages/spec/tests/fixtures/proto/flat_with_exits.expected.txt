@@ -1,0 +1,1 @@
+proto/flat_with_exits.yaml:7:3: error[E-OUTPUTS] outputs: outputs keys kind, confidence are not declared exits; nest outputs by exit (done: {...}) — a flat mapping means a done-only step

@@ -1,0 +1,10 @@
+kind: proto_step
+name: check
+instruction: Decide whether the text is an invoice.
+inputs:
+  text: string
+outputs:
+  ok: boolean
+examples:
+  - inputs: { text: Invoice 42 }
+    outputs: { ok: true }
