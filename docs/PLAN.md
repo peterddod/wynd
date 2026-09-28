@@ -2799,3 +2799,21 @@ resolved differently from the reviewer's suggested fix, with the reason.
   (1) still holds for `npm exec -- vitest run`). (4) Not changed: `SchemaForm`'s free-row mode (an inputs schema
   without `properties`) does not resync its rows when the value changes from outside (fill-from-example); no
   fixture or sample process has such a schema.
+- **M4-INT result (W10):** web `check` (typecheck, 522 vitest tests, build) and `build` green; `pytest packages/controller
+  packages/cli` 848 passed; `WYND_DOCKER=1` `test_docker_e2e.py` 3 passed, incl. the new manual + webhook release case.
+  Clone smoke (`serve-api` on a temp clone): health; meta (`llm.ready` equal to `check_provider("claude-code")`);
+  search with status flags; design save without a commit, then one `design(process_supplier_invoice): …` commit
+  touching only `process.yaml`; expression typo returns an error with a span; local run with its SSE ending in `end`;
+  fake-variant manual release fired via `/trigger`, webhook release via `/hooks` (wrong or missing secret 401); `GET /`
+  serves the bundle. Live: one chat turn in the clone made one commit that raised the fix loop limit. Token-conditional
+  (the dev key is now in `.env`): a release of the real dogfood image fired once and ended `done` (read, extract,
+  validate, save; live claude-code in the container), and `test_docker_claude_code_live` passes, so the M2
+  token-conditional item is no longer BLOCKED. The `$DRAFTS/07 §17.6` checklist ran in Chrome and items 1–7
+  passed. Item 5 compiled the chat-added step for $0.27 after 3 proposals were answered, and integration was a fast
+  forward.
+- **W10 not changed:** (1) Design saves go through JSON (web editor and chat `edit_design`), so whole-valued floats are
+  written back as ints (`14250.0` → `14250`); JSON cannot tell them apart, the values stay equal and `match_outputs`
+  compares numbers with `isclose`. (2) The graph's `fitView` runs once at mount, before the inspector narrows the
+  canvas, so the leftmost node can start clipped; the pane pans and no fit control is specified. (3) Polls pause while
+  `document.hidden` (by design), so a browser automated in a background window must report the page visible.
+  (4) A compile proposal's "why" text can carry a fenced YAML block, which the question card shows as plain text.

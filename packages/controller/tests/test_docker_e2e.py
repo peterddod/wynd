@@ -10,6 +10,10 @@ dependencies from PyPI and needs the `wynd-base` image (built on demand from the
    entry reaches the container only through `WYND_REGISTRY_JSON` (+ `WYND_MCP_NOTES_URL` pointing at the host), the
    run succeeds only after the runtime connected and listed the server's tools, and the image refuses to start
    (`env-check`) when `WYND_REGISTRY_JSON` is withheld.
+3. (M4-INT) A manual and a webhook release of the fake-variant build each run example 1 in their own release
+   container (`support.ctl_rel_e2e`: the webhook refuses a wrong secret and accepts the controller's value of its
+   `secret_env`); both runs end with the example's exit and the same `(step, exit, outputs)` sequence as `run --local`,
+   and each fire is recorded against its run.
 """
 
 from __future__ import annotations
@@ -24,6 +28,7 @@ import pytest
 
 from support.ctl_m2_variant import FAKE_SCRIPT, MCP_PID, PID, PROCESS_REL, build_image, dogfood_copy, mcp_workspace, \
     step_triples
+from support.ctl_rel_e2e import fire_manual_and_webhook
 from wynd.controller.controller import Controller
 from wynd.controller.models import ImageTarget
 from wynd.spec import load_process
@@ -130,3 +135,40 @@ def test_mcp_registry_entry_reaches_the_container_only_through_registry_json(tmp
         finally:
             ctl.serve.stop(image)
             remove_image(image)
+
+
+def test_fake_dogfood_release_fires_manually_and_by_webhook(tmp_path, shared_venvs, online):
+    from wynd.controller.status import process_head
+
+    ws = dogfood_copy(tmp_path, shared_venvs)
+    example = load_process(ws / PROCESS_REL / "process.yaml").examples[0]
+    pdf = str(ws / PROCESS_REL / example.inputs["pdf_path"])
+    local_out = tmp_path / "out"
+    env = {name: str(local_out / name.lower()) for name in DIRS} | {
+        "WYND_FAKE_PROVIDER_SCRIPT": FAKE_SCRIPT.read_text(), "WYND_HOOK_SECRET": "hook-secret-e2e"}
+    bindings = {name: {"value": f"{CONTAINER_OUT}/{name.lower()}"} for name in DIRS} | {
+        "WYND_FAKE_PROVIDER_SCRIPT": {"from_env": "WYND_FAKE_PROVIDER_SCRIPT"}}
+    ctl = open_controller(ws, env)
+    image = build_image(ctl, PID)
+    commit, _ = process_head(ctl.ctx, PID)
+    try:
+        manual, hook = fire_manual_and_webhook(ctl, PID, commit, {"pdf_path": pdf}, env=bindings,
+                                               secret_env="WYND_HOOK_SECRET")
+        local = ctl.runs.run(PID, {"pdf_path": pdf})
+
+        assert local.exit == example.exit
+        for run, trigger in ((manual, "manual"), (hook, "webhook")):
+            assert (run.status, run.exit, run.mode, run.trigger) == ("succeeded", example.exit, "image", trigger), \
+                run.error
+            assert run.target.kind == "release" and run.target.release_id == run.release_id
+            replace = {str(local_out): "<out>", CONTAINER_OUT: "<out>", local.id: "<run>", run.id: "<run>"}
+            assert step_triples(ctl.runs.events(run.id), replace) == step_triples(ctl.runs.events(local.id), replace)
+            fires = ctl.releases.fires(run.release_id)
+            assert [(f.source, f.ok, f.run_id) for f in fires] == [(trigger, True, run.id)]
+        assert ctl.releases.list(process_id=PID) == []                  # deleting a release removed its container
+        assert not subprocess.run(["docker", "ps", "-q", "--filter", f"ancestor={image}"], capture_output=True,
+                                  text=True).stdout.strip()
+    finally:
+        for release in ctl.releases.list(process_id=PID):
+            ctl.releases.delete(release.id)
+        remove_image(image)
