@@ -25,6 +25,8 @@ processes/process_supplier_invoice/
   process.yaml                    the graph and its examples (run by `wynd test`)
   proto/*.yaml                    one proto-step per step: instruction, types, examples
   steps/<name>/                   compiled step packages (module, tests, step.lock.yaml)
+  edges.lock.yaml                 knobs of the agentic save branch (written by `wynd compile`)
+  cassettes/                      recorded model calls of the process examples, incl. edge checks
   examples/*.pdf                  sample documents
 ```
 
@@ -49,6 +51,7 @@ uv run wynd test process_supplier_invoice          # offline: replays recorded m
 uv run wynd run process_supplier_invoice --local \
   --input pdf_path=processes/process_supplier_invoice/examples/acme_inv_1042.pdf   # live: uses your Claude login
 uv run wynd trace <run_id>
+uv run wynd optimise process_supplier_invoice      # tier report from recorded live calls (no model call)
 ```
 
 Re-record the model calls with `uv run wynd test process_supplier_invoice --live`. It runs as a job and commits

@@ -2833,3 +2833,25 @@ resolved differently from the reviewer's suggested fix, with the reason.
   proto-step with no matching compiled source. A release env binding `from_env` of a host directory path (e.g.
   `RECORDS_DIR=/private/tmp/…`) is passed into the container as that path, where it may not be creatable. Bind a
   container path by value instead.
+- **M5-INT fix-up (W12):** a compile whose steps were all skipped wrote a new `edges.lock.yaml` but ran no
+  process-level record phase, so its result commit had no edge-check cassettes and the replay gate failed (§7
+  item 7). A changed edges lock now marks its process (and so its parents) affected, and the report lists it as a
+  `{"type": "edges_lock", "process", "branches"}` process change in the commit message; covered by
+  `test_pipeline_offline.py`. The dogfood validator and offline e2e tests now require the M5 state (exactly two
+  `I201`, no `W-EDGE-LOCK-*`).
+- **M5-INT result (W12):** `wynd compile process_supplier_invoice` skipped all six steps and committed only
+  `edges.lock.yaml` (`validate.done[save]`: cheap, low, 2 retries, 120 s) and the process cassettes (four new
+  `cassettes/edges/` recordings; examples 1–6 re-recorded live, 6/6 passed); fast-forward. `wynd test --live`: all
+  seven suites passed, cassettes re-recorded, fast-forward. Replay `wynd test` with
+  `ANTHROPIC_API_KEY=sk-invalid-replay-check`: six step suites and examples 1–6 pass, all 19 `model.call` events
+  `cassette: replay` (4 `edge:validate.done[save]`), example 6 ends `needs_review` after a `take: false` verdict,
+  results recorded at the closure HEAD. `wynd validate`: two `I201`, no warnings; status design no, compiled yes.
+  `wynd optimise process_supplier_invoice`: 4 runs, 5 live calls, every agentic unit and the edge keep (R0), no
+  applicable change. Full offline suite 4344 passed; live edge-check worker test and live smoke pass.
+- **W12 trace reading:** `wynd test` runs examples on scratch stores it deletes afterwards, so `run-example-6` is not
+  addressable by `wynd trace`. "The run id of example 6" (here and FINAL-INT item 4) is a `wynd run --local` of example
+  6's input; its trace shows `validate.done → save  check: NOT TAKEN — "…" (claude-code/cheap, 6.28s, $0.0043)`.
+- **W12 not changed:** (1) `test_live` jobs and the compile's process-level record phase report zero `JobUsage`
+  although they make live calls (only compile attempts are metered). (2) Their example runs trace into the job's
+  scratch stores (fixed ids `run-example-<n>` would collide in the workspace registry), so optimise evidence is
+  served/CLI runs only, not live tests as `$DRAFTS/08 §1` item 8 lists; the report above counts CLI runs.

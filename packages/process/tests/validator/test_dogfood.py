@@ -1,8 +1,8 @@
 """The dogfood (`examples/invoices`) validates with exactly two `I201` infos and nothing else (PLAN §6.3, §14
 PROC-VAL Accept), with its compiled step packages and in the design phase (protos only).
 
-The M5 dogfood names its branches (`save`, `fix`) and makes `validate.done` agentic (PLAN §12 item 6). Until
-`wynd compile` writes `edges.lock.yaml` (M5-INT), the save branch also warns `W-EDGE-LOCK-MISSING`."""
+The M5 dogfood names its branches (`save`, `fix`) and makes `validate.done` agentic (PLAN §12 item 6); its
+committed `edges.lock.yaml` (written by `wynd compile`, M5-INT) locks the save branch, so no `W-EDGE-LOCK-*` fires."""
 
 import pytest
 
@@ -24,11 +24,7 @@ def dogfood(request, make_repo, repo_root):
 def test_dogfood_validates_with_exactly_two_i201(dogfood):
     report = validate_process(load_workspace(dogfood), PID)
     assert report.ok
-    lock_missing = [] if (dogfood / "processes" / PID / "edges.lock.yaml").exists() else [
-        ("W-EDGE-LOCK-MISSING", "warning", "edges[3].to[0].check"),
-    ]
     assert [(d.code, d.severity, format_loc(d.loc)) for d in report.diagnostics] == [
-        *lock_missing,
         ("I201", "info", "edges[3].to[1]"),
         ("I201", "info", "edges[4].to[0]"),
     ]

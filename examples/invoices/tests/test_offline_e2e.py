@@ -107,12 +107,7 @@ def test_every_example_has_an_expected_step_sequence():
 def test_validate_reports_only_the_two_cycle_infos(workspace):
     report = json.loads(wynd(workspace, "validate", PID, "--json"))
     assert report["ok"] is True
-    # until `wynd compile` writes edges.lock.yaml (M5-INT), the agentic save branch runs on defaults and warns
-    lock_missing = [] if (workspace / PROCESS_REL / "edges.lock.yaml").exists() else [
-        ("warning", "W-EDGE-LOCK-MISSING"),
-    ]
-    assert [(i["severity"], i["code"]) for i in report["issues"]] == [*lock_missing, ("info", "I201"),
-                                                                        ("info", "I201")]
+    assert [(i["severity"], i["code"]) for i in report["issues"]] == [("info", "I201"), ("info", "I201")]
     messages = " ".join(i["message"] for i in report["issues"] if i["code"] == "I201")
     assert "'validate.done[fix]'" in messages and "'fix.done[0]'" in messages
 
