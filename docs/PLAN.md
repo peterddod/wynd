@@ -2452,7 +2452,7 @@ checklist is executed in a browser if available (claude-in-chrome), else recorde
 ### Wave 11b — M5 optimise job
 | Unit | Owns | May import | Implements | Accept |
 |---|---|---|---|---|
-| **OPT-CTL** | controller `optimise.py`; cli `commands/optimise.py`; `examples/invoices/tests/test_optimise_live.py`; tests `$C/test_optimise_job.py`, `packages/cli/tests/test_optimise_cmd.py` | process, controller (cli: controller) | `$DRAFTS/08 §3.7–§3.8` via §3.18 | `uv run pytest $C/test_optimise_job.py packages/cli/tests/test_optimise_cmd.py` |
+| **OPT-CTL** | controller `optimise.py`; cli `commands/optimise.py`; `examples/invoices/tests/test_optimise_live.py`; tests `$C/test_optimise_job.py`, `packages/cli/tests/test_optimise_cmd.py` | spec, runtime, process, controller (cli: controller) | `$DRAFTS/08 §3.7–§3.8` via §3.18 | `uv run pytest $C/test_optimise_job.py packages/cli/tests/test_optimise_cmd.py` |
 
 ### Wave 12 — **M5-INT** (alone)
 Accept (SPEC §12 M5): commit; `uv run wynd compile process_supplier_invoice` writes `edges.lock.yaml` (only the
@@ -2637,6 +2637,10 @@ an earlier wave implemented.
     normalisation rewrites every date/datetime under `with:`/`finally[].with` into the quoted expression string of its
     ISO text (`2026-10-01` → `"'2026-10-01'"`), so the normalised model holds no date objects and a JSON round trip of
     `RunPlan`/`process.lock.yaml` cannot turn the literal into arithmetic.
+71. **`Wynd-Report-Commit` is informational body text in optimise commits.** §3.18's `ctx.commit(message, paths)`
+    always appends `Wynd-Job: <id>` as its own trailer paragraph, so `$DRAFTS/08 §3.7`'s merged trailer block is not
+    reproduced: `Wynd-Job` is the commit's only git trailer, and the report commit is also kept as `report_commit` in
+    the job's `report`. Nothing parses the line.
 
 ---
 
