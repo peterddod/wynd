@@ -159,6 +159,97 @@
       "output": {
         "exit": "not_an_invoice"
       }
+    },
+    {
+      "match": {
+        "input": {
+          "invoice_text": "Umbrella Corporation\nRaccoon Business Park, Unit 4, Leeds LS1 4AP, United Kingdom\nPRO FORMA INVOICE\nPro forma number: PF-88\nDate: 10 September 2026\nValid until: 10 October 2026\nBill to: Wynd Test Ltd\nProtective suits (quotation)      20 x £170.00      £3,400.00\nTotal: £3,400.00\nThis pro forma is not a request for payment. A final invoice will be issued on delivery."
+        }
+      },
+      "output": {
+        "exit": "done",
+        "supplier": "Umbrella Corporation",
+        "invoice_number": "PF-88",
+        "total": 3400.0,
+        "currency": "GBP",
+        "due_date": "2026-10-10"
+      }
+    },
+    {
+      "match": {
+        "input": {
+          "transition": {
+            "from": "validate.done",
+            "to": "save"
+          },
+          "bindings": {
+            "record": {
+              "key": "acme-supplies-ltd__INV-1042"
+            }
+          }
+        }
+      },
+      "output": {
+        "take": true,
+        "reason": "The document is headed INVOICE, number INV-1042, and states a total due of £1,200.50 with 30-day payment terms."
+      }
+    },
+    {
+      "match": {
+        "input": {
+          "transition": {
+            "from": "validate.done",
+            "to": "save"
+          },
+          "bindings": {
+            "record": {
+              "key": "globex-corporation__GX-77810"
+            }
+          }
+        }
+      },
+      "output": {
+        "take": true,
+        "reason": "The document is headed INVOICE, number GX-77810, and states an amount due of USD 14,250.00 payable by 15 November 2026."
+      }
+    },
+    {
+      "match": {
+        "input": {
+          "transition": {
+            "from": "validate.done",
+            "to": "save"
+          },
+          "bindings": {
+            "record": {
+              "key": "initech-canada-inc__IC-5521"
+            }
+          }
+        }
+      },
+      "output": {
+        "take": true,
+        "reason": "The document is headed INVOICE, number IC-5521, and states a total of $980.00 due on 20 October 2026."
+      }
+    },
+    {
+      "match": {
+        "input": {
+          "transition": {
+            "from": "validate.done",
+            "to": "save"
+          },
+          "bindings": {
+            "record": {
+              "key": "umbrella-corporation__PF-88"
+            }
+          }
+        }
+      },
+      "output": {
+        "take": false,
+        "reason": "The document is a pro forma invoice (PF-88) and states it is not a request for payment."
+      }
     }
   ]
 }

@@ -411,7 +411,9 @@ def test_the_dogfood_builds_three_venvs_and_six_wheels(make_repo, repo_root, run
     inputs = {v.id: v.inputs for v in lock.venvs}
     assert inputs[lock.plan.steps[f"{pid}#read_pdf"].venv] == ["pypdf==6.19.0"]          # locked_deps win
     assert inputs[lock.plan.steps[f"{pid}#fix_fields"].venv] == ["claude-agent-sdk>=0.2.157,<0.3"]
-    assert len(lock.wheels) == 6 and lock.plan.edge_venvs == {}
+    assert len(lock.wheels) == 6
+    # the agentic save branch (M5) reuses the claude-code venv of extract/fix (PLAN §6.4 edge venv rule)
+    assert lock.plan.edge_venvs == {f"{pid}:validate.done[save]": lock.plan.steps[f"{pid}#fix_fields"].venv}
     assert [f.source for f in lock.fragments][-1] == "provider:claude-code"
     assert (lock.base.variant, lock.base.reason, lock.commit) == ("slim", None, commit)
     dockerfile = (build_dir / "Dockerfile").read_text()

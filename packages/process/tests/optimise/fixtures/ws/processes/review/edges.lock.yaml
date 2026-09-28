@@ -1,0 +1,5 @@
+wynd: 1
+edges:
+  judge.done[ok]:
+    check_hash: sha256:65b62ad97a6ddeeb09f0ef177b318d7edbc34f4a2abcf72287883dcef5102a8e
+    tier: standard

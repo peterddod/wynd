@@ -69,6 +69,18 @@ SAMPLES: dict[str, list[str]] = {
         "Returned: 2 x Nucleus compression licence      -£250.00",
         "Total: -£250.00",
     ],
+    "umbrella_proforma_88.pdf": [
+        "Umbrella Corporation",
+        "Raccoon Business Park, Unit 4, Leeds LS1 4AP, United Kingdom",
+        "PRO FORMA INVOICE",
+        "Pro forma number: PF-88",
+        "Date: 10 September 2026",
+        "Valid until: 10 October 2026",
+        "Bill to: Wynd Test Ltd",
+        "Protective suits (quotation)      20 x £170.00      £3,400.00",
+        "Total: £3,400.00",
+        "This pro forma is not a request for payment. A final invoice will be issued on delivery.",
+    ],
 }
 
 

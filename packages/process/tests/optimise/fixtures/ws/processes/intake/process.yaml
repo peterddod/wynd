@@ -1,0 +1,33 @@
+kind: process
+name: intake
+goal: Read an invoice, extract its total and file it.
+provider: claude-code
+entry: read
+inputs:
+  path: path
+outputs:
+  total: number
+steps:
+  read: { use: ./steps/read }
+  extract: { use: ./steps/extract }
+  classify: { use: shared:classify }
+  review: { use: process:review }
+edges:
+  - from: read.done
+    to: extract
+    with: { text: steps.read.outputs.text }
+  - from: extract.done
+    kind: agentic
+    to:
+      - step: classify
+        name: save
+        check: The extracted total matches the invoice text.
+        with: { total: steps.extract.outputs.total }
+      - step: review
+        with: { text: steps.read.outputs.text }
+  - from: classify.done
+    to: $exit.done
+    with: { total: steps.extract.outputs.total }
+  - from: review.done
+    to: $exit.done
+    with: { total: steps.review.outputs.total }

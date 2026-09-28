@@ -1,0 +1,5 @@
+# Optimise fixture workspace: a local deterministic step, a local and a shared agentic step, a child process, and
+# agentic branches in the parent and the child.
+process_roots: [processes]
+step_roots:
+  shared: shared/steps

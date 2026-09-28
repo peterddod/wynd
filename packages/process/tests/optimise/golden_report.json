@@ -1,0 +1,313 @@
+{
+  "v": 1,
+  "process": "intake",
+  "commit": "3f2a9c1d0e5b7a8c9d0e1f2a3b4c5d6e7f8a9b0c",
+  "generated_at": "2026-10-02T09:00:00Z",
+  "window": {
+    "max_runs": null,
+    "runs_considered": 25,
+    "live_calls": 75
+  },
+  "rules": {
+    "version": 1,
+    "min_samples": 20,
+    "promote_fail_rate": 0.05,
+    "promote_vfail_rate": 0.2,
+    "demote_max_vfail_rate": 0.02,
+    "demote_max_mean_attempts": 1.05,
+    "hysteresis_min_samples": 5,
+    "fast_call_p95_ms": 1500.0,
+    "fast_run_p95_ms": 10000.0,
+    "fast_dispatch_p95_ms": 50.0,
+    "latency_min_samples": 5
+  },
+  "units": [
+    {
+      "unit": "read",
+      "kind": "deterministic",
+      "package": "./steps/read",
+      "lock_path": "processes/intake/steps/read/step.lock.yaml",
+      "provider": null,
+      "tier": null,
+      "current": null,
+      "by_tier": {},
+      "duration_p50_ms": 16.5,
+      "duration_p95_ms": 22.0,
+      "recommendation": null
+    },
+    {
+      "unit": "extract",
+      "kind": "agentic",
+      "package": "./steps/extract",
+      "lock_path": "processes/intake/steps/extract/step.lock.yaml",
+      "provider": "claude-code",
+      "tier": "standard",
+      "current": {
+        "provider": "claude-code",
+        "tier": "standard",
+        "n": 25,
+        "fails": 0,
+        "vfail_execs": 0,
+        "attempts_sum": 25,
+        "calls": 25,
+        "input_tokens": 22825,
+        "output_tokens": 2250,
+        "cost_usd": 0.07500000000000002,
+        "fail_rate": 0.0,
+        "vfail_rate": 0.0,
+        "mean_attempts": 1.0,
+        "cost_per_exec_usd": 0.003000000000000001,
+        "call_p50_ms": 2060.0,
+        "call_p95_ms": 2280.0,
+        "exec_p50_ms": 2160.0,
+        "exec_p95_ms": 2380.0
+      },
+      "by_tier": {
+        "claude-code/standard": {
+          "provider": "claude-code",
+          "tier": "standard",
+          "n": 25,
+          "fails": 0,
+          "vfail_execs": 0,
+          "attempts_sum": 25,
+          "calls": 25,
+          "input_tokens": 22825,
+          "output_tokens": 2250,
+          "cost_usd": 0.07500000000000002,
+          "fail_rate": 0.0,
+          "vfail_rate": 0.0,
+          "mean_attempts": 1.0,
+          "cost_per_exec_usd": 0.003000000000000001,
+          "call_p50_ms": 2060.0,
+          "call_p95_ms": 2280.0,
+          "exec_p50_ms": 2160.0,
+          "exec_p95_ms": 2380.0
+        }
+      },
+      "duration_p50_ms": 2160.0,
+      "duration_p95_ms": 2380.0,
+      "recommendation": {
+        "action": "demote",
+        "rule": "D1",
+        "from_tier": "standard",
+        "to_tier": "cheap",
+        "reason": "0 failures, 0.0% validation failures, 1.00 attempts over 25 executions at standard",
+        "applicable": true,
+        "not_applicable_reason": null
+      }
+    },
+    {
+      "unit": "classify",
+      "kind": "agentic",
+      "package": "shared:classify",
+      "lock_path": "shared/steps/classify/step.lock.yaml",
+      "provider": "claude-code",
+      "tier": "standard",
+      "current": {
+        "provider": "claude-code",
+        "tier": "standard",
+        "n": 25,
+        "fails": 0,
+        "vfail_execs": 0,
+        "attempts_sum": 25,
+        "calls": 25,
+        "input_tokens": 12500,
+        "output_tokens": 1000,
+        "cost_usd": 0.05000000000000003,
+        "fail_rate": 0.0,
+        "vfail_rate": 0.0,
+        "mean_attempts": 1.0,
+        "cost_per_exec_usd": 0.0020000000000000013,
+        "call_p50_ms": 1330.0,
+        "call_p95_ms": 1440.0,
+        "exec_p50_ms": 1430.0,
+        "exec_p95_ms": 1540.0
+      },
+      "by_tier": {
+        "claude-code/standard": {
+          "provider": "claude-code",
+          "tier": "standard",
+          "n": 25,
+          "fails": 0,
+          "vfail_execs": 0,
+          "attempts_sum": 25,
+          "calls": 25,
+          "input_tokens": 12500,
+          "output_tokens": 1000,
+          "cost_usd": 0.05000000000000003,
+          "fail_rate": 0.0,
+          "vfail_rate": 0.0,
+          "mean_attempts": 1.0,
+          "cost_per_exec_usd": 0.0020000000000000013,
+          "call_p50_ms": 1330.0,
+          "call_p95_ms": 1440.0,
+          "exec_p50_ms": 1430.0,
+          "exec_p95_ms": 1540.0
+        }
+      },
+      "duration_p50_ms": 1430.0,
+      "duration_p95_ms": 1540.0,
+      "recommendation": {
+        "action": "demote",
+        "rule": "D1",
+        "from_tier": "standard",
+        "to_tier": "cheap",
+        "reason": "0 failures, 0.0% validation failures, 1.00 attempts over 25 executions at standard",
+        "applicable": false,
+        "not_applicable_reason": "shared step shared:classify: changing its tier changes every process that uses it"
+      }
+    },
+    {
+      "unit": "review",
+      "kind": "process",
+      "package": "process:review",
+      "lock_path": null,
+      "provider": null,
+      "tier": null,
+      "current": null,
+      "by_tier": {},
+      "duration_p50_ms": null,
+      "duration_p95_ms": null,
+      "recommendation": null
+    },
+    {
+      "unit": "review.judge",
+      "kind": "agentic",
+      "package": "./steps/judge",
+      "lock_path": "processes/review/steps/judge/step.lock.yaml",
+      "provider": "claude-code",
+      "tier": "cheap",
+      "current": null,
+      "by_tier": {},
+      "duration_p50_ms": null,
+      "duration_p95_ms": null,
+      "recommendation": {
+        "action": "keep",
+        "rule": "R0",
+        "from_tier": "cheap",
+        "to_tier": null,
+        "reason": "only 0 live executions at cheap; need 20",
+        "applicable": false,
+        "not_applicable_reason": null
+      }
+    },
+    {
+      "unit": "edge:extract.done[save]",
+      "kind": "edge",
+      "package": null,
+      "lock_path": "processes/intake/edges.lock.yaml",
+      "provider": "claude-code",
+      "tier": "cheap",
+      "current": {
+        "provider": "claude-code",
+        "tier": "cheap",
+        "n": 25,
+        "fails": 0,
+        "vfail_execs": 0,
+        "attempts_sum": 25,
+        "calls": 25,
+        "input_tokens": 10000,
+        "output_tokens": 750,
+        "cost_usd": 0.025000000000000015,
+        "fail_rate": 0.0,
+        "vfail_rate": 0.0,
+        "mean_attempts": 1.0,
+        "cost_per_exec_usd": 0.0010000000000000007,
+        "call_p50_ms": 930.0,
+        "call_p95_ms": 1040.0,
+        "exec_p50_ms": 980.0,
+        "exec_p95_ms": 1090.0
+      },
+      "by_tier": {
+        "claude-code/cheap": {
+          "provider": "claude-code",
+          "tier": "cheap",
+          "n": 25,
+          "fails": 0,
+          "vfail_execs": 0,
+          "attempts_sum": 25,
+          "calls": 25,
+          "input_tokens": 10000,
+          "output_tokens": 750,
+          "cost_usd": 0.025000000000000015,
+          "fail_rate": 0.0,
+          "vfail_rate": 0.0,
+          "mean_attempts": 1.0,
+          "cost_per_exec_usd": 0.0010000000000000007,
+          "call_p50_ms": 930.0,
+          "call_p95_ms": 1040.0,
+          "exec_p50_ms": 980.0,
+          "exec_p95_ms": 1090.0
+        }
+      },
+      "duration_p50_ms": 980.0,
+      "duration_p95_ms": 1090.0,
+      "recommendation": {
+        "action": "keep",
+        "rule": "K1",
+        "from_tier": "cheap",
+        "to_tier": null,
+        "reason": "within bounds",
+        "applicable": false,
+        "not_applicable_reason": null
+      }
+    },
+    {
+      "unit": "edge:review.judge.done[ok]",
+      "kind": "edge",
+      "package": null,
+      "lock_path": "processes/review/edges.lock.yaml",
+      "provider": "claude-code",
+      "tier": "standard",
+      "current": null,
+      "by_tier": {},
+      "duration_p50_ms": null,
+      "duration_p95_ms": null,
+      "recommendation": {
+        "action": "keep",
+        "rule": "R0",
+        "from_tier": "standard",
+        "to_tier": null,
+        "reason": "only 0 live executions at standard; need 20",
+        "applicable": false,
+        "not_applicable_reason": null
+      }
+    }
+  ],
+  "warnings": [],
+  "totals": [
+    {
+      "provider": "claude-code",
+      "tier": "cheap",
+      "calls": 25,
+      "input_tokens": 10000,
+      "output_tokens": 750,
+      "cost_usd": 0.025000000000000015
+    },
+    {
+      "provider": "claude-code",
+      "tier": "standard",
+      "calls": 50,
+      "input_tokens": 35325,
+      "output_tokens": 3250,
+      "cost_usd": 0.12500000000000006
+    }
+  ],
+  "changes": [
+    {
+      "unit": "extract",
+      "lock_path": "processes/intake/steps/extract/step.lock.yaml",
+      "lock_key": null,
+      "from_tier": "standard",
+      "to_tier": "cheap",
+      "rule": "D1",
+      "evidence": {
+        "n": 25.0,
+        "fail_rate": 0.0,
+        "vfail_rate": 0.0,
+        "mean_attempts": 1.0,
+        "cost_per_exec_usd": 0.003000000000000001
+      }
+    }
+  ]
+}

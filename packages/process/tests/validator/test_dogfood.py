@@ -1,5 +1,8 @@
 """The dogfood (`examples/invoices`) validates with exactly two `I201` infos and nothing else (PLAN §6.3, §14
-PROC-VAL Accept), with its compiled step packages and in the design phase (protos only)."""
+PROC-VAL Accept), with its compiled step packages and in the design phase (protos only).
+
+The M5 dogfood names its branches (`save`, `fix`) and makes `validate.done` agentic (PLAN §12 item 6). Until
+`wynd compile` writes `edges.lock.yaml` (M5-INT), the save branch also warns `W-EDGE-LOCK-MISSING`."""
 
 import pytest
 
@@ -21,12 +24,16 @@ def dogfood(request, make_repo, repo_root):
 def test_dogfood_validates_with_exactly_two_i201(dogfood):
     report = validate_process(load_workspace(dogfood), PID)
     assert report.ok
+    lock_missing = [] if (dogfood / "processes" / PID / "edges.lock.yaml").exists() else [
+        ("W-EDGE-LOCK-MISSING", "warning", "edges[3].to[0].check"),
+    ]
     assert [(d.code, d.severity, format_loc(d.loc)) for d in report.diagnostics] == [
+        *lock_missing,
         ("I201", "info", "edges[3].to[1]"),
         ("I201", "info", "edges[4].to[0]"),
     ]
-    assert [d.message for d in report.diagnostics] == [
-        "branch 'validate.done[1]' → 'fix' lies on a cycle; max_traversals defaulted to 10",
+    assert [d.message for d in report.diagnostics if d.code == "I201"] == [
+        "branch 'validate.done[fix]' → 'fix' lies on a cycle; max_traversals defaulted to 10",
         "branch 'fix.done[0]' → 'validate' lies on a cycle; max_traversals defaulted to 10",
     ]
 
@@ -43,7 +50,7 @@ def test_dogfood_normalized_and_env_refs(dogfood):
     assert filled == {("validate.done", 1): DEFAULT_MAX_TRAVERSALS, ("fix.done", 0): DEFAULT_MAX_TRAVERSALS}
     assert "max_traversals" not in (dogfood / "processes" / PID / "process.yaml").read_text()
     assert report.env_refs == {
-        "REVIEW_DIR": [f"edge:{PID}:validate.done[0].dest"],
-        "RECORDS_DIR": [f"edge:{PID}:validate.done[0].dest"],
+        "REVIEW_DIR": [f"edge:{PID}:validate.done[save].dest"],
+        "RECORDS_DIR": [f"edge:{PID}:validate.done[save].dest"],
         "ESCALATIONS_DIR": [f"edge:{PID}:validate.done[2].queue_dir"],
     }

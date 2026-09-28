@@ -12,7 +12,7 @@ from wynd.compiler import jobs
 from wynd.compiler.llm import MemoLLM
 from wynd.compiler.testing import FakeJobContext, ScriptedLLM
 from wynd.spec.interface import interfaces_equivalent
-from wynd.spec.lockfiles import StepLock
+from wynd.spec.lockfiles import StepLock, load_edges_lock
 from wynd.spec.yamlio import parse_model
 
 SCRIPT = Path(__file__).parent / "fixtures" / "scripts" / "dogfood.yaml"
@@ -51,7 +51,7 @@ def test_compiling_the_dogfood_reproduces_m1(repo_root, make_repo, monkeypatch, 
     ctx.finish(outcome)
 
     assert outcome.status == "succeeded", outcome.error
-    assert outcome.report["integration_tests"]["passed"] == 5 and outcome.report["integration_tests"]["failed"] == 0
+    assert outcome.report["integration_tests"]["passed"] == 6 and outcome.report["integration_tests"]["failed"] == 0
     git(ws, "merge", "-q", "--ff-only", outcome.commit)
     steps = ws / PROCESS / "steps"
     assert sorted(p.name for p in steps.iterdir()) == sorted(M1_KINDS)
@@ -68,4 +68,5 @@ def test_compiling_the_dogfood_reproduces_m1(repo_root, make_repo, monkeypatch, 
         else:
             assert list((steps / package / "cassettes").glob("*.json")), package
     assert _lock(steps / "read_pdf" / "step.lock.yaml").locked_deps == ["pypdf==6.19.0"]
+    assert list(load_edges_lock(ws / PROCESS / "edges.lock.yaml").edges) == ["validate.done[save]"]  # M5
     assert len(llm.calls) == 18

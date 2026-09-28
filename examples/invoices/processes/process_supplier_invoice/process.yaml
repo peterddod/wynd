@@ -41,6 +41,9 @@ examples:
   - inputs: { pdf_path: examples/hooli_credit_note_311.pdf }     # negative total: not fixable -> escalate
     env: *dirs
     exit: needs_review
+  - inputs: { pdf_path: examples/umbrella_proforma_88.pdf }      # valid fields, agentic check says no -> escalate
+    env: *dirs
+    exit: needs_review
 steps:
   read:     { use: ./steps/read_pdf }
   extract:  { use: ./steps/extract_invoice_fields }
@@ -57,22 +60,29 @@ edges:
     with: { fields: steps.extract.outputs }
   - from: extract.not_an_invoice
     to: $exit.not_an_invoice
-  # Branches evaluated top to bottom; first taken wins; the first branch with no when is the else.
+  # Branches evaluated top to bottom; first taken wins; the first branch with no when/check is the else.
   - from: validate.done
+    kind: agentic
     to:
       - step: save
+        name: save
         when: steps.validate.outputs.valid
+        check: >-
+          The document is a final supplier invoice that requests payment:
+          not a pro forma invoice, quote, estimate or statement.
+        context: [steps.read.outputs]
         with:
           record: steps.validate.outputs.record
           dest: if steps.validate.outputs.fields.total > 10000 then env.REVIEW_DIR
                 else env.RECORDS_DIR
       - step: fix
+        name: fix
         when: steps.validate.outputs.fixable and steps.fix.runs < 3
         with:
           invoice_text: steps.read.outputs.text
           fields: steps.validate.outputs.fields                    # the fields just validated: extract's or fix's
           errors: steps.validate.outputs.errors
-      - step: escalate                                             # else: not fixable, or already fixed 3 times
+      - step: escalate                                             # else: not fixable, fixed 3 times, or check said no
         with:
           fields: steps.validate.outputs.fields
           errors: steps.validate.outputs.errors

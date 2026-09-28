@@ -1,0 +1,12 @@
+optimise intake @ 3f2a9c1  (25 runs, 75 live calls; rules v1, min 20)
+UNIT                       KIND     PROVIDER     TIER      N    FAIL   VFAIL  ATT   COST/EXEC  P95 CALL  ACTION
+read                       determ.  -            -         -    -      -      -     -          -         -
+extract                    agentic  claude-code  standard  25   0.0%   0.0%   1.00  $0.0030    2.3s      demote -> cheap (D1)
+classify                   agentic  claude-code  standard  25   0.0%   0.0%   1.00  $0.0020    1.4s      demote -> cheap (D1, not applicable)
+review                     process  -            -         -    -      -      -     -          -         -
+review.judge               agentic  claude-code  cheap     0    -      -      -     -          -         keep (R0: 0 < 20)
+edge:extract.done[save]    edge     claude-code  cheap     25   0.0%   0.0%   1.00  $0.0010    1.0s      keep (K1)
+edge:review.judge.done[ok] edge     claude-code  standard  0    -      -      -     -          -         keep (R0: 0 < 20)
+warnings: none
+totals: claude-code/cheap 25 calls, 10.0k in / 750 out tokens, $0.03; claude-code/standard 50 calls, 35.3k in / 3.2k out tokens, $0.13 (API-equivalent)
+1 applicable change. Run `wynd optimise intake --apply` to submit an optimise job.

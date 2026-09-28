@@ -38,6 +38,7 @@ SEQUENCES = {
         ("save", "done")],
     4: [("read", "done"), ("extract", "not_an_invoice")],
     5: [("read", "done"), ("extract", "done"), ("validate", "done"), ("escalate", "done")],
+    6: [("read", "done"), ("extract", "done"), ("validate", "done"), ("escalate", "done")],
 }
 
 
@@ -106,9 +107,14 @@ def test_every_example_has_an_expected_step_sequence():
 def test_validate_reports_only_the_two_cycle_infos(workspace):
     report = json.loads(wynd(workspace, "validate", PID, "--json"))
     assert report["ok"] is True
-    assert [(i["severity"], i["code"]) for i in report["issues"]] == [("info", "I201"), ("info", "I201")]
-    messages = " ".join(i["message"] for i in report["issues"])
-    assert "'validate.done[1]'" in messages and "'fix.done[0]'" in messages
+    # until `wynd compile` writes edges.lock.yaml (M5-INT), the agentic save branch runs on defaults and warns
+    lock_missing = [] if (workspace / PROCESS_REL / "edges.lock.yaml").exists() else [
+        ("warning", "W-EDGE-LOCK-MISSING"),
+    ]
+    assert [(i["severity"], i["code"]) for i in report["issues"]] == [*lock_missing, ("info", "I201"),
+                                                                        ("info", "I201")]
+    messages = " ".join(i["message"] for i in report["issues"] if i["code"] == "I201")
+    assert "'validate.done[fix]'" in messages and "'fix.done[0]'" in messages
 
 
 @pytest.mark.parametrize("n", range(1, len(EXAMPLES) + 1))
@@ -142,7 +148,7 @@ def test_a_fixable_currency_is_fixed_once_and_the_tree_shows_the_loop(workspace,
     assert all(line.startswith(("├─ ", "└─ ", "│  ")) for line in lines)
     nodes = [line[3:].split("  ")[0] for line in lines if line.startswith(("├─ ", "└─ "))]
     assert nodes == ["read", "extract", "validate", "fix", "validate #2", "save"]
-    assert "│  → validate.done[1] → fix" in lines
+    assert "│  → validate.done[fix] → fix" in lines
     assert written(tmp_path) == {"records": ["initech-canada-inc__IC-5521.json"]}
 
 
@@ -158,3 +164,14 @@ def test_a_credit_note_is_escalated_with_a_ticket(workspace, offline, tmp_path, 
     assert ticket["run_id"] == run["id"]
     assert [e["code"] for e in ticket["errors"]] == ["non_positive_total"]
     assert ticket["fields"]["invoice_number"] == "CN-311"
+
+
+def test_a_pro_forma_fails_the_agentic_check_and_is_escalated(workspace, offline, tmp_path, monkeypatch):
+    run = run_example(workspace, 6, tmp_path, monkeypatch)
+    assert written(tmp_path) == {"escalations": [f"{run['id']}.json"]}
+    ticket = json.loads((tmp_path / "escalations" / f"{run['id']}.json").read_text(encoding="utf-8"))
+    assert ticket["errors"] == []
+    assert ticket["reasons"] == [f"routed to review by the process; see `wynd trace {run['id']}`"]
+    events = json.loads(wynd(workspace, "trace", run["id"], "--json"))["items"]
+    checks = [(e["branch_key"], e["take"]) for e in events if e["type"] == "edge.check"]
+    assert checks == [("validate.done[save]", False)]
